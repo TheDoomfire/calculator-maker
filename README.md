@@ -1,5 +1,12 @@
-# template-python
-Template for python projects. Not completed
+# Calculator Maker
+
+To speed up the development of calculators for my website.
+
+
+## TODO
+- Choose a javascript file.
+- Look inside the export default function() and grab the values.
+- 
 
 
 ## Installations
