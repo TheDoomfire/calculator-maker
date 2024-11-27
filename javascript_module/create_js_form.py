@@ -42,6 +42,9 @@ def generate_js_file(params: Dict[str, str], returns: Dict[str, str], file_names
     htmlName = file_names['html']
     fileName = file_names['file']
     functionName = file_names['function']
+    name = file_names['name']
+    calculator_component = name +".js"
+    pretty_name = file_names['pretty_name']
         
     # Rest of your existing code...
     # (imports detection, file generation, etc.)
@@ -54,6 +57,10 @@ import AttachDocumentListener from '/scripts/listeners/attachDocumentListener.js
 import { toggle_class_if_contains_this_text } from '/scripts/dom/ClassToggler.js'
 import { generate_main_chart } from '/scripts/charts/mainChart.js'
 """
+
+    # TODO: Import Calculator function, now I get "compoundAnnualGrowthRateForm.js" instead of "compoundAnnualGrowthRate.js".
+
+    new_javascript_file += f"""import {functionName} from '/scripts/calc/{calculator_component}';\n"""
 
     # -------- Add imports for all types --------
     all_types = [] # change to "all_input_types"
@@ -112,16 +119,18 @@ function {formName}() {{
     new_javascript_file += f"""\n\tconst results = {functionName}({all_inputs_string});\n\n"""
 
 
-    tableID = "chart-" + htmlName
     for ret in returns:
         element = ret['element']
         name = ret['name']
         if element == 'currency':
-            new_javascript_file += f"""\tdocument.getElementById("{name}").innerHTML = prettifyMoney(results.{name});\n"""
+            new_javascript_file += f"""\tdocument.getElementById("result-{name}").innerHTML = prettifyMoney(results.{name});\n"""
         elif element == "percent":
-            new_javascript_file += f"""\tdocument.getElementById("{name}").innerHTML = results.{name};\n"""
+            new_javascript_file += f"""\tdocument.getElementById("result-{name}").innerHTML = prettifyPercent(results.{name}/100);\n"""
         elif element == "table":
-            new_javascript_file += f"""\tarrayToTable({name}, {tableID});\n"""
+            tableID = "table-" + htmlName
+            new_javascript_file += f"""\tarrayToTable(results.{name}, "{tableID}");\n"""
+        else:
+            new_javascript_file += f"""\tdocument.getElementById("{name}").innerHTML = separateNumber(results.{name});\n"""
 
 
     new_javascript_file +="""\n\n\ttoggle_class_if_contains_this_text();"""
@@ -140,7 +149,7 @@ function {formName}() {{
     print("chartDataset:", chartDataset)
     chartDataString = ", ".join(chartDataset)
 
-    new_javascript_file += f"""\n\tgenerate_main_chart("{chartID} Chart", "bar", {chartLabels}, [{chartDataString}], "{chartID}");\n"""
+    new_javascript_file += f"""\n\tgenerate_main_chart("{pretty_name} Chart", "bar", {chartLabels}, [{chartDataString}], "{chartID}");\n"""
 
 
     new_javascript_file += f"""\n}};"""

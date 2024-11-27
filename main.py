@@ -1,12 +1,26 @@
+#!/usr/bin/env python3
+import os
+import argparse
+
 # Local Imports
 from javascript_module import read_javascript, get_types_javascript, create_js_form
-from formats import format_for_javascript
+from article_module import create_article_file
+from formats import format_for_javascript, format_for_html
 from html_module import create_html_file
 
+# Paths
+main_path = r"D:\Documents\GitHub\chooseinvesting\src"
+javascript_folder_path = os.path.join(main_path, "scripts", "calc")
+forms_path = os.path.join(main_path, "scripts", "forms")
+html_path = os.path.join(main_path, "_includes", "components", "calc")
+articles_path = os.path.join(main_path, "calc")
 
-javascript_folder_path = r"D:\Documents\GitHub\chooseinvesting\src\scripts\calc"
-javascript_file_name = "compoundAnnualGrowthRate.js" # compoundAnnualGrowthRate.js marketValueAdded.js
-forms_path = r"D:\Documents\GitHub\chooseinvesting\src\scripts\forms"
+# URL
+main_url = "https://chooseinvesting.com/"
+local_url = "http://localhost:8081/"
+
+# File names
+# javascript_file_name = "compoundAnnualGrowthRate.js" # compoundAnnualGrowthRate.js marketValueAdded.js
 
 
 percentages = ["percent", "percentage"]
@@ -20,43 +34,73 @@ shares = ["share", "shares"]
 
 
 def main():
-    print("Running the main app.")
+    # ----------- Arguments -----------
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Helps creating the forms for calculators.")
+
+        # Add a required text argument
+    parser.add_argument(
+        "text",  # This is a positional argument (no `--` required when passing it)
+        type=str,  # The expected type of the argument
+        help="The text to process",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Get the text from the arguments
+    javascript_file_name = args.text + ".js"
+
+    # ----------- Main -----------
+
+    # TODO: See if any files been added to "javascript_folder_path" folder, if so, add them all to an array
+    # TODO: Then run them all in this function.
+    # Make this when I have tried it more.
+
     # Read the javascript file
     js_content = read_javascript.read_js_file(javascript_folder_path, javascript_file_name)
-    print(js_content)
     # Get the types of the parameters and return value
     param_types = get_types_javascript.extract_param_types(js_content) # ERROR HERE?
-    print("Parameters:")
-    print(param_types)
 
-    # TODO: Make this also return the export type. Like "table", "percentage", "currency", "share", "custom"
     return_types = get_types_javascript.extract_return_type(js_content)
-    print("All Returns:")
-    print(return_types)
-    print("-------------")
 
-    # TODO: Add pretty name?
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)
     fileName = new_javascript_file_names['file'] # New file name for example "nameForm.js"
+    htmlName = new_javascript_file_names['html'] # New file name for example "name-form"
+    #pretty_name = new_javascript_file_names['pretty_name']
+    nunjucksName = htmlName + ".njk"
     #formName = new_javascript_file_names['form'] # New file name for example "nameForm"
     #htmlName = new_javascript_file_names['html'] # New file name for example "name-form"
-    print("new_javascript_file_names")
-    print(new_javascript_file_names)
 
-    print("Creating JS file.")
     new_javascript_content = create_js_form.generate_js_file(param_types, return_types, new_javascript_file_names)
-    print("new_javascript_content:")
-    print(new_javascript_content)
 
     new_html_content = create_html_file.create_html_content(param_types, return_types, new_javascript_file_names)
-    print("HTML:")
-    print(new_html_content)
 
-    # TODO: Add new_html_content so it gets created to.
+    new_calculator_article_content = create_article_file.create_article_content(param_types, return_types, new_javascript_file_names)
+
     # Creates the form javascript file.
-"""     new_form_path = create_js_form.create_file(new_javascript_content, forms_path, fileName)
+    new_form_path = create_js_form.create_file(new_javascript_content, forms_path, fileName)
     if new_form_path:
-        print("New file created at:", new_form_path) """
+        print("New file created at:", new_form_path)
+    # Creates the html file.
+    new_html_path = create_js_form.create_file(new_html_content, html_path, nunjucksName)
+    if new_html_path:
+        print("New file created at:", new_html_path)
+    new_calculator_article_path = create_js_form.create_file(new_calculator_article_content, articles_path, nunjucksName)
+    if new_calculator_article_path:
+        print("New file created at:", new_calculator_article_path)
+
+    print("URL:", local_url + "calc/" + htmlName)
+
+"""     if run_or_delete != 1:
+        # Deletes the form javascript file.
+        os.remove(new_form_path)
+        print("Deleted:", new_form_path)
+        os.remove(new_html_path)
+        print("Deleted:", new_html_path)
+        os.remove(new_calculator_article_path)
+        print("Deleted:", new_calculator_article_path) """
+
 
 """     test = get_types_javascript.detect_type("hello")
     print("TEST:", test) """

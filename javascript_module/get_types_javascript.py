@@ -11,19 +11,45 @@ import re
 # Example: marketValueCurrency - Market Value ($)
 # Example 2: marketValueCurrencyAdded - Market Value Added ($)
 # Remove the name that is in "detect_type(name)"
-def make_name_pretty(name):
+# Makes years - S
+""" def make_name_pretty(name):
     print("name")
+    print(name)
     element_type = detect_type(name)
     print("element_type")
     if element_type != "unsupported type" or element_type != "unsupported":
         # removes the element type from the name.
-        name = re.sub(element_type, '', name, flags=re.IGNORECASE)
+        name = re.sub(element_type, '', name, flags=re.IGNORECASE) # THE PROBLEM IS HERE
+        print("name2:", name)
         # Seperates them.
         name = re.sub(r'(?<!^)(?=[A-Z])', ' ', name)
+        print("name3:", name)
         # Make each word capitalized.
         name = ' '.join(word.capitalize() for word in name.split())
+        print("name4:", name)
+
+    return name """
+
+
+def make_name_pretty(name):
+
+    element_type = detect_type(name)  # Ensure this returns correct values
+    if element_type != "unsupported type" and element_type != "unsupported":
+        # Escape the element_type to avoid regex issues
+        escaped_type = re.escape(element_type)
+        # Removes the element type from the name
+        name = re.sub(rf'\b{escaped_type}\b', '', name, flags=re.IGNORECASE)
+        print("name2:", name)
+
+    # Separates words by detecting uppercase letters
+    name = re.sub(r'(?<!^)(?=[A-Z])', ' ', name)
+
+    # Capitalize each word
+    name = ' '.join(word.capitalize() for word in name.split())
 
     return name
+
+
 
 def extract_param_types(js_content):
     # Regular expression to extract parameter info
@@ -133,7 +159,7 @@ def detect_type(input_string):
         "table": ["table", "data", "information"],
         "select": ["select", "option", "choice"],
         "compoundInterestSelect": ["compoundinterestfrequency",],
-        "year": ["year", "years"],
+        "year": ["years", "year"],
     }
     
     # Convert to lowercase to make the check case-insensitive

@@ -26,15 +26,18 @@ def format_js_function_name(file_name):
     formNameFile = formName + extension
 
     htmlName = camel_to_kebab(name)
+    nunjucksName = htmlName + ".njk"
 
     pretty_name = get_types_javascript.make_name_pretty(name)
 
     return {
+        'name': name,
         'function': functionName,
         'form': formName,
         'file': formNameFile,
         'html': htmlName,
-        'pretty_name': pretty_name
+        'pretty_name': pretty_name,
+        'nunjucks': nunjucksName
     }
 
 

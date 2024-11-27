@@ -1,16 +1,13 @@
-from setuptools import setup  # type: ignore
+from setuptools import setup, find_packages  # type: ignore
   
-# TODO: Edit this to fit your project!
-
 setup( 
-    name='test_package', 
-    version='0.1', 
+    name='calculator_helper', 
+    version='0.1',
+    packages=find_packages(),
     description='A sample Python package', 
-    author='Test', 
-    author_email='test@example.com', 
-    packages=['test_package'], 
-    install_requires=[ 
-        'numpy', 
-        'pandas', 
-    ], 
+    entry_points={
+        "console_scripts": [
+            "ci_calc=main:main",  # 'my_project' will be the command
+        ],
+    },
 ) 
