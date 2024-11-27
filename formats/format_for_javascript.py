@@ -1,5 +1,10 @@
 import os
 import re
+import sys
+
+# Local Imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from javascript_module import get_types_javascript
 
 
 def format_js_function_name(file_name):
@@ -16,17 +21,20 @@ def format_js_function_name(file_name):
     extension = splitted_function_name['extension']
     name = splitted_function_name['name']
 
-    functionName = name.capitalize()
+    functionName = name[:1].upper() + name[1:] # Capitalize the first letter
     formName = name + "Form"
     formNameFile = formName + extension
 
     htmlName = camel_to_kebab(name)
 
+    pretty_name = get_types_javascript.make_name_pretty(name)
+
     return {
         'function': functionName,
         'form': formName,
         'file': formNameFile,
-        'html': htmlName
+        'html': htmlName,
+        'pretty_name': pretty_name
     }
 
 
