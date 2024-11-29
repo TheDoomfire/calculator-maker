@@ -7,6 +7,7 @@ from javascript_module import read_javascript, get_types_javascript, create_js_f
 from article_module import create_article_file
 from formats import format_for_javascript, format_for_html
 from html_module import create_html_file
+from ai_module import get_ai_content
 
 # Paths
 main_path = r"D:\Documents\GitHub\chooseinvesting\src"
