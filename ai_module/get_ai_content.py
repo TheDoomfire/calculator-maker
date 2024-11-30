@@ -38,6 +38,8 @@ def create_ai_content(title, *content):
 
     Title: {question}
 
+    Do not include any additional text, explanations, or comments before or after the response.
+
     Answer:
     """
 
@@ -45,6 +47,7 @@ def create_ai_content(title, *content):
     # Template for the sections and all the H2 titles.
     templateContent = """
     You will write for the title "{question}". The text will be html ready, each h2 will be a section. There will be no boilerplate html surrounding the sections they will be the highest level of the html.
+    All text should be in a paragraph tag for each text piece.
     Here is a list of all the H2 titles in the content:
     1. Formula - The formula for "{question}". It should be a H2 tag. It works like the javascript content and the inputs is from the html/nunjucks file and should mimic them and is only acceptable to change them slighly and if it increases the readability.
     If there are several return values from the javascript file and about the under the "results" in the results part of the html/nunjucks file then write each forumla with it's name and it's own h3 or h4 "Example".
@@ -54,6 +57,8 @@ def create_ai_content(title, *content):
     Content: {files}
 
     Title: {question}
+
+    Do not include any additional text, explanations, or comments before or after the response.
 
     Answer:
     """
@@ -76,9 +81,11 @@ def create_ai_content(title, *content):
     meta_description = chain.invoke({"question": title, "files": content_formatted_string})
     article_content = chain_article.invoke({"question": title, "files": content_formatted_string})
 
+    # Had to make it a dict ("meta_description": meta_description vs just meta_description) because it was giving me this error:
+    # TypeError: 'set' object is not subscriptable
     return {
-        meta_description,
-        article_content
+        "meta_description": meta_description,
+        "article_content": article_content
     }
 
 

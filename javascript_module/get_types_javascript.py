@@ -1,6 +1,66 @@
 import re
 
 
+# TODO: Make this work! Work with params. Params for description and this for the rest.
+
+def extract_function_details(js_code):
+    """
+    Extracts the parameters, their comments, and return object details from an export default JavaScript function.
+
+    Args:
+        js_code (str): The JavaScript code containing the function.
+
+    Returns:
+        dict: A dictionary with the function name, parameters, and return details.
+    """
+    # Regex to find the export default function and its parameters
+    function_pattern = re.compile(
+        r"export\s+default\s+function\s+(\w+)\s*\(([^)]*)\)", re.MULTILINE
+    )
+
+    # Regex to find parameters with inline comments
+    param_comment_pattern = re.compile(r"(\w+)\s*,?\s*//\s*(.+)")
+
+    # Regex to find the return object
+    return_pattern = re.compile(r"return\s*\{\s*([\s\S]*?)\s*\};", re.MULTILINE)
+
+    # Regex to extract return object properties and comments
+    return_comment_pattern = re.compile(r"(\w+)\s*,?\s*//\s*(.+)")
+
+    # Find the function definition
+    match = function_pattern.search(js_code)
+    if not match:
+        return None
+
+    function_name = match.group(1)
+    params_block = match.group(2)
+
+    # Extract parameters and their comments
+    parameters = []
+    for param_match in param_comment_pattern.finditer(params_block):
+        parameters.append({
+            "name": param_match.group(1),
+            "comment": param_match.group(2)
+        })
+
+    # Find the return block
+    return_match = return_pattern.search(js_code)
+    returns = []
+    if return_match:
+        return_block = return_match.group(1)
+        for return_item_match in return_comment_pattern.finditer(return_block):
+            returns.append({
+                "name": return_item_match.group(1),
+                "comment": return_item_match.group(2)
+            })
+
+    return {
+        "function_name": function_name,
+        "parameters": parameters,
+        "returns": returns
+    }
+
+
 """ def extract_param_types(js_content):
     # Regular expression to extract parameter info
     pattern = r'@param\s+{(\w+)}\s+(\w+)\s+-\s+(.*)'
@@ -175,8 +235,31 @@ def detect_type(input_string):
 
 
 def main():
+    # Test js content.
     js_content = """
-    // Your JavaScript function here
+/**
+ * Calculates the market value and market value added (MVA).
+ * @param {number} sharePrice - The price per share of the stock.
+ * @param {number} sharesOutstanding - The total number of outstanding shares.
+ * @param {number} capitalInvested - The amount of capital invested.
+ * @returns {Object} An object containing the calculated values.
+ * @property {number} marketValue - The total market value of the company.
+ * @property {number} marketValueAdded - The market value added (MVA).
+ */
+
+export default function MarketValueAdded(
+    sharePrice, // Currency
+    sharesOutstanding, // Units
+    capitalInvested // Currency
+) {
+    const marketValue = sharePrice * sharesOutstanding;
+    const marketValueAdded = marketValue - capitalInvested;
+
+    return {
+        marketValue, // Currency
+        marketValueAdded // Currency
+    };
+};
     """
     print("get_types_javascript.py")
     params = extract_param_types(js_content)
@@ -184,6 +267,12 @@ def main():
 
     print("Parameters:", params)
     print("Return Type:", return_type)
+
+    test = extract_function_details(js_content)
+    print("test")
+    print(test)
+
+    # {'function_name': 'MarketValueAdded', 'parameters': [{'name': 'sharePrice', 'comment': 'Currency'}, {'name': 'sharesOutstanding', 'comment': 'Units'}, {'name': 'capitalInvested', 'comment': 'Currency'}]}
 
 if __name__ == '__main__':
     main()

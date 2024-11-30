@@ -10,7 +10,7 @@ from ai_module import get_ai_content
 
 # \n
 # TODO: Add content
-def create_article_content(params: Dict[str, str], returns: Dict[str, str], file_names: Dict[str, str], files_content: List[str]):
+def create_article_content(params: Dict[str, str], returns: Dict[str, str], file_names: Dict[str, str], files_content: List[str], allow_ai: bool = True):
     #html_name = file_names['html']
     #file_name = file_names['file']
 
@@ -22,16 +22,20 @@ def create_article_content(params: Dict[str, str], returns: Dict[str, str], file
 
     calculator_title = pretty_name + " Calculator"
 
-    # AI 
-    ai_returns = get_ai_content.create_ai_content(calculator_title, files_content)
-    ai_meta_description = ai_returns['meta_description']
-    ai_article_content = ai_returns['article_content']
+    # AI
+    ai_meta_description = ""
+    ai_article_content = ""
+    if allow_ai: # If I allow AI. Because my PC is too slow.
+        ai_returns = get_ai_content.create_ai_content(calculator_title, files_content)
+
+        ai_meta_description = ai_returns['meta_description']
+        ai_article_content = ai_returns['article_content']
+
+    # TODO: Make sure ai_meta_description is max 150 characters.
 
 
     category = "investment"
     schema_sub_category = "InvestmentCalculator"
-
-    content = "" # AI: Generate "Formula" + "Meaning" h2 titles.
 
     article_content = f"""---
 title: "{calculator_title}"

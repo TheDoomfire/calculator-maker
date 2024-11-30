@@ -39,6 +39,7 @@ def main():
 
     # TODO: Make in the command prompt you can choose to delete the chosen one?
     run = True # If I should run the program (True) OR delete the files (False).
+    allow_ai = False # If I should allow AI to write the article.
 
     print("Welcome to the calculator maker.")
 
@@ -85,7 +86,7 @@ def main():
     new_html_content = create_html_file.create_html_content(param_types, return_types, new_javascript_file_names)
 
     # TODO: Add "js_content", "new_javascript_content" and "new_html_content"
-    new_calculator_article_content = create_article_file.create_article_content(param_types, return_types, new_javascript_file_names, [js_content, new_javascript_content,  new_html_content])
+    new_calculator_article_content = create_article_file.create_article_content(param_types, return_types, new_javascript_file_names, [js_content, new_javascript_content,  new_html_content], allow_ai)
 
 
     # Creates files and returns the paths. Else returns paths of the files that already exist.
