@@ -39,7 +39,6 @@ def make_name_pretty(name):
         escaped_type = re.escape(element_type)
         # Removes the element type from the name
         name = re.sub(rf'\b{escaped_type}\b', '', name, flags=re.IGNORECASE)
-        print("name2:", name)
 
     # Separates words by detecting uppercase letters
     name = re.sub(r'(?<!^)(?=[A-Z])', ' ', name)

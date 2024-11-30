@@ -10,8 +10,6 @@ from javascript_module import get_types_javascript
 
 
 def format_html_function_name(file_name):
-    print("file_name:", file_name)
-
     pretty_name = get_types_javascript.make_name_pretty(file_name)
 
     # Make the text pretty.

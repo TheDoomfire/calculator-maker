@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import argparse
+import webbrowser # For opening the browser.
 
 # Local Imports
 from javascript_module import read_javascript, get_types_javascript, create_js_form
@@ -35,11 +36,17 @@ shares = ["share", "shares"]
 
 
 def main():
+
+    # TODO: Make in the command prompt you can choose to delete the chosen one?
+    run = True # If I should run the program (True) OR delete the files (False).
+
+    print("Welcome to the calculator maker.")
+
     # ----------- Arguments -----------
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Helps creating the forms for calculators.")
 
-        # Add a required text argument
+    # Add a required text argument
     parser.add_argument(
         "text",  # This is a positional argument (no `--` required when passing it)
         type=str,  # The expected type of the argument
@@ -60,9 +67,9 @@ def main():
 
     # Read the javascript file
     js_content = read_javascript.read_js_file(javascript_folder_path, javascript_file_name)
-    # Get the types of the parameters and return value
-    param_types = get_types_javascript.extract_param_types(js_content) # ERROR HERE?
 
+    # Get the types of the parameters and return value
+    param_types = get_types_javascript.extract_param_types(js_content)
     return_types = get_types_javascript.extract_return_type(js_content)
 
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)
@@ -77,21 +84,29 @@ def main():
 
     new_html_content = create_html_file.create_html_content(param_types, return_types, new_javascript_file_names)
 
-    new_calculator_article_content = create_article_file.create_article_content(param_types, return_types, new_javascript_file_names)
+    # TODO: Add "js_content", "new_javascript_content" and "new_html_content"
+    new_calculator_article_content = create_article_file.create_article_content(param_types, return_types, new_javascript_file_names, [js_content, new_javascript_content,  new_html_content])
 
-    # Creates the form javascript file.
+
+    # Creates files and returns the paths. Else returns paths of the files that already exist.
     new_form_path = create_js_form.create_file(new_javascript_content, forms_path, fileName)
-    if new_form_path:
-        print("New file created at:", new_form_path)
-    # Creates the html file.
     new_html_path = create_js_form.create_file(new_html_content, html_path, nunjucksName)
-    if new_html_path:
-        print("New file created at:", new_html_path)
     new_calculator_article_path = create_js_form.create_file(new_calculator_article_content, articles_path, nunjucksName)
-    if new_calculator_article_path:
-        print("New file created at:", new_calculator_article_path)
 
-    print("URL:", local_url + "calc/" + htmlName)
+    all_new_files = [new_form_path, new_html_path, new_calculator_article_path]
+
+    for file in all_new_files:
+        if os.path.exists(file) and run:
+            print("File at:", file)
+        elif run == False:
+            os.remove(file)
+            print("Deleted:", file)        
+
+    if run:
+        # Open the browser.
+        article_local_url = local_url + "calc/" + htmlName
+        webbrowser.open(article_local_url)
+        print("URL:", article_local_url)
 
 """     if run_or_delete != 1:
         # Deletes the form javascript file.

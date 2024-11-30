@@ -2,6 +2,11 @@
 
 To speed up the development of calculators for my website.
 
+## To run it:
+in command prompt: calc_help %file_name%
+
+I made a batch file to run it. "calc_help.bat"
+
 
 ## TODO
 - Choose a javascript file.
@@ -28,3 +33,10 @@ Installing the project. Everything you need here.
 
 `pip freeze > requirements.txt` - Create the requirements.txt
 `pip install -r requirements.txt` - Installs it.
+
+### Installed Apps
+I could just use the requirements.txt file.
+
+pip install ollama langchain langchain-ollama
+
+python main.py

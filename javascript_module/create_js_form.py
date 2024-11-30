@@ -64,19 +64,15 @@ import { generate_main_chart } from '/scripts/charts/mainChart.js'
 
     # -------- Add imports for all types --------
     all_types = [] # change to "all_input_types"
-    all_units = ["share", "unit", "piece"]
+    #all_units = ["share", "unit", "piece"]
 
-    #for pr in params_return:
-    print("PARAMS:::", params)
-    print("RETURNS:::", returns)
     # TODO: Make so "returns" looks like "params".
-    print("Params:", params)
+
 
     # For what imports to use.
     params_return = [params, returns]
     for pr in params_return:
         for param in pr:
-            print("param:", param)
             if 'element' in param:
                 element = param['element']
                 if element == 'currency' and not 'currency' in all_types :
@@ -146,7 +142,6 @@ function {formName}() {{
             chartLabels.append(ret['pretty_name'])
             chartDataset.append("results." + name)
 
-    print("chartDataset:", chartDataset)
     chartDataString = ", ".join(chartDataset)
 
     new_javascript_file += f"""\n\tgenerate_main_chart("{pretty_name} Chart", "bar", {chartLabels}, [{chartDataString}], "{chartID}");\n"""
@@ -173,14 +168,15 @@ def create_file(file_content, path, name):
     file_path = os.path.join(path, name)
     
     # Check if the file already exists
-    if os.path.exists(file_path):
-        return f"Skipped: File '{file_path}' already exists."
+    #if os.path.exists(file_path):
+    #    return f"Skipped: File '{file_path}' already exists."
     
     # Create and write content to the file
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(file_content)
     
-    return f"Created: File '{file_path}' has been created."
+    return file_path
+
     
 def get_imports(params: dict) -> str:
     """

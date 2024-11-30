@@ -15,7 +15,6 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
     params_return = [params, returns]
     for pr in params_return:
         for param in pr:
-            print("param:", param)
             if 'element' in param:
                 element = param['element']
                 if element == 'currency' and not 'currency' in all_imports:
@@ -28,7 +27,6 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
                 #    all_imports.append("custom")
     
     # Add imports.
-    print("all_imports:", all_imports)
     for imp in all_imports:
         if imp == "currency":
             new_html_file += f"""{{% import 'components/inputs/input-currency.njk' as currencyInput %}}\n"""    
@@ -53,7 +51,6 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
             element = param['element']
             key = param['name']
             pretty_name = param['pretty_name']
-            print("key:", key)
             if element == 'currency':
                 new_html_file += f"""\t\t{{{{ currencyInput.inputCurrency("{key}", "{pretty_name}") }}}}\n"""
             elif element == 'percent':

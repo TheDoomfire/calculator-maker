@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages  # type: ignore
-  
+
 setup( 
-    name='calculator_helper', 
+    name='calc_help', 
     version='0.1',
     packages=find_packages(),
     description='A sample Python package', 

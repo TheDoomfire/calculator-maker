@@ -1,15 +1,33 @@
-from typing import Dict
+import os
+import sys
+from typing import Dict, List
+
+# Local Imports
+# Local Imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from ai_module import get_ai_content
 
 
 # \n
-def create_article_content(params: Dict[str, str], returns: Dict[str, str], file_names: Dict[str, str]):
+# TODO: Add content
+def create_article_content(params: Dict[str, str], returns: Dict[str, str], file_names: Dict[str, str], files_content: List[str]):
     #html_name = file_names['html']
     #file_name = file_names['file']
+
+    # TODO: Add AI
+
+
     pretty_name = file_names['pretty_name']
     nunjucks_file_name = file_names['nunjucks']
 
     calculator_title = pretty_name + " Calculator"
-    calculator_description = "" # TODO: Get AI to generate a text for this.
+
+    # AI 
+    ai_returns = get_ai_content.create_ai_content(calculator_title, files_content)
+    ai_meta_description = ai_returns['meta_description']
+    ai_article_content = ai_returns['article_content']
+
+
     category = "investment"
     schema_sub_category = "InvestmentCalculator"
 
@@ -20,7 +38,7 @@ title: "{calculator_title}"
 layout: 'base.njk'
 type: website
 tags: ["calculator"]
-description: "{calculator_description}"
+description: "{ai_meta_description}"
 author: Albini
 keywords: investing, calculator
 category: ["{category}"]
@@ -40,7 +58,7 @@ schema_sub_category: {schema_sub_category}
         {{% include 'components/calc/{nunjucks_file_name}' %}}
 
         
-        {content}
+        {ai_article_content}
         
 
         {{% include 'components/read-more.njk' %}}
@@ -50,3 +68,14 @@ schema_sub_category: {schema_sub_category}
 """
     
     return article_content
+
+
+def main():
+    print("Creating dummy article.")
+    title = "Dummy Article"
+    #article_content = create_article_content(title)
+    #print(article_content)
+
+
+if __name__ == '__main__':
+    main()
