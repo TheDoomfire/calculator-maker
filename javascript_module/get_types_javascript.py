@@ -1,7 +1,7 @@
 import re
 
 
-# TODO: Make this work! Work with params. Params for description and this for the rest.
+# TODO: Make this work! Work with params. Params for description and this for the rest. 
 
 def extract_function_details(js_code):
     """
@@ -13,6 +13,11 @@ def extract_function_details(js_code):
     Returns:
         dict: A dictionary with the function name, parameters, and return details.
     """
+    # Lazy way to get the old params and returns.
+    # To grab the descriptions. Might use them for hover titles.
+    old_params = extract_param_types(js_code)
+    old_returns = extract_return_type(js_code)
+
     # Regex to find the export default function and its parameters
     function_pattern = re.compile(
         r"export\s+default\s+function\s+(\w+)\s*\(([^)]*)\)", re.MULTILINE
@@ -35,12 +40,16 @@ def extract_function_details(js_code):
     function_name = match.group(1)
     params_block = match.group(2)
 
+    # Old: {"type": the_type, "name": name, "description": description, "element": element_type, "pretty_name": pretty_name}
     # Extract parameters and their comments
     parameters = []
     for param_match in param_comment_pattern.finditer(params_block):
         parameters.append({
             "name": param_match.group(1),
-            "comment": param_match.group(2)
+            "pretty_name": make_name_pretty(param_match.group(1)),
+            "element": detect_type(param_match.group(2)),
+            "description": find_value_by_key(old_params, "name", param_match.group(1), 'description'),
+            "last_word": get_last_word(param_match.group(1))
         })
 
     # Find the return block
@@ -51,7 +60,10 @@ def extract_function_details(js_code):
         for return_item_match in return_comment_pattern.finditer(return_block):
             returns.append({
                 "name": return_item_match.group(1),
-                "comment": return_item_match.group(2)
+                "pretty_name": make_name_pretty(return_item_match.group(1)),
+                "element": detect_type(return_item_match.group(2)),
+                "description": find_value_by_key(old_returns, "name", return_item_match.group(1), 'description'),
+                "last_word": get_last_word(return_item_match.group(1))
             })
 
     return {
@@ -59,6 +71,36 @@ def extract_function_details(js_code):
         "parameters": parameters,
         "returns": returns
     }
+
+
+def get_last_word(input_string):
+    """
+    Splits the input string by capital letters and returns the last word.
+    If no separation occurs, returns the input string itself.
+    
+    :param input_string: The string to process.
+    :return: The last word or the input string if it's a single word.
+    """
+    words = re.findall(r'[A-Z][a-z]*|[a-z]+', input_string)
+    return words[-1] if words else input_string.lower()
+
+
+def find_value_by_key(objects, match_key, match_value, return_key):
+    """
+    Find the value of a specific key in an object within a list, 
+    based on a matching key-value pair.
+
+    Args:
+        objects (list): List of dictionaries to search.
+        match_key (str): The key to match (e.g., 'name').
+        match_value (str): The value to match for the key (e.g., 'banana').
+        return_key (str): The key whose value you want to retrieve.
+
+    Returns:
+        Any or None: The value of the return_key, or None if no match is found.
+    """
+    return next((obj[return_key] for obj in objects if obj.get(match_key) == match_value), None)
+
 
 
 """ def extract_param_types(js_content):
@@ -214,10 +256,10 @@ def detect_type(input_string):
         "percent": ["percentage", "percent", "percentile"], #  "rate", "ratio"
         "currency": ["currency", "money", "capital"], # "price", "cost", "dollar", "euro", "pound",
         "share": ["share", "stock", "equity", "ownership", "holding"],
-        "unit": ["volume", "quantity", "amount", "count"],
+        "unit": ["volume", "quantity", "amount", "count", "unit", "units"],
         "table": ["table", "data", "information"],
         "select": ["select", "option", "choice"],
-        "compoundInterestSelect": ["compoundinterestfrequency",],
+        "compoundInterestSelect": ["compoundinterestfrequency", "select:compoundinterest"],
         "year": ["years", "year"],
     }
     
@@ -227,9 +269,9 @@ def detect_type(input_string):
     # Check each type group for matching keywords
     for type_name, keywords in type_keywords.items():
         if any(keyword in lower_string for keyword in keywords):
-            return type_name
+            return type_name.lower()
     
-    # If no keywords are found
+    # TODO: Maybe return the last word or something instead of "unsupported type". Or with a better PC, have AI.
     return "unsupported type"
 
 
@@ -265,14 +307,29 @@ export default function MarketValueAdded(
     params = extract_param_types(js_content)
     return_type = extract_return_type(js_content)
 
+    print("js_content", type(js_content))
+
     print("Parameters:", params)
     print("Return Type:", return_type)
 
+    # TODO: Add description and pretty_name form the params/return.
+    # TODO: Create a new "elements" 
     test = extract_function_details(js_content)
     print("test")
-    print(test)
+    print("test type", type(test))
+    #print(test)
+    print("New Params:", test['parameters'])
+    print("New Returns:", test['returns'])
+
 
     # {'function_name': 'MarketValueAdded', 'parameters': [{'name': 'sharePrice', 'comment': 'Currency'}, {'name': 'sharesOutstanding', 'comment': 'Units'}, {'name': 'capitalInvested', 'comment': 'Currency'}]}
 
+""" 
+    Parameters: [{'type': 'number', 'name': 'sharePrice', 'description': 'The price per share of the stock.', 'element': 'share', 'pretty_name': 'Share Price'}, {'type': 
+    'number', 'name': 'sharesOutstanding', 'description': 'The total number of outstanding shares.', 'element': 'share', 'pretty_name': 'Shares Outstanding'}, {'type': 'number', 'name': 'capitalInvested', 'description': 'The amount of capital invested.', 'element': 'currency', 'pretty_name': 'Capital Invested'}]
+    Return Type: [{'type': 'number', 'name': 'marketValue', 'description': 'The total market value of the company.', 'element': 'unsupported type', 'pretty_name': 'Market Value'}, {'type': 'number', 'name': 'marketValueAdded', 'description': 'The market value added (MVA).', 'element': 'unsupported type', 'pretty_name': 'Market Value Added'}]
+    test
+    {'function_name': 'MarketValueAdded', 'parameters': [{'name': 'sharePrice', 'comment': 'Currency'}, {'name': 'sharesOutstanding', 'comment': 'Units'}, {'name': 'capitalInvested', 'comment': 'Currency'}], 'returns': [{'name': 'marketValue', 'comment': 'Currency'}, {'name': 'marketValueAdded', 'comment': 'Currency'}]}
+ """
 if __name__ == '__main__':
     main()

@@ -1,9 +1,14 @@
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
+# Local Imports:
+from .ai_templates import templateContent, templateCalculator, templateMetaDescriptionHistory, templateFormula, templateMeaning
+
+
 stronger_model_name = "llama3.2-vision" # Very slow.
 weaker_model_name = "llama3.2" # Still very slow :(
 current_model_name = stronger_model_name
+
 
 
 
@@ -13,8 +18,20 @@ current_model_name = stronger_model_name
 # "Real-World Applications"
 # "FAQs"??
 
+
+# TODO: To improve this:
+# Make several small AI requests. Easier to get it right and not skipping anything.
+# Mix up the AI with programming. Since programming is always done the same way.
+
+
+
+# Templates:
+
+
+
 # Grab all the information needed for an article.
 def create_ai_content(title, *content):
+    meta_description_history = ""
 
     # If the content is already an array, use it as-is.
     # Check if the first argument in *content is a list
@@ -26,60 +43,45 @@ def create_ai_content(title, *content):
     # Format the content into a single string.
     content_formatted_string = "\n".join([f"File {i + 1}: {file_content}" for i, file_content in enumerate(content_list)])
 
-    # Meta description.
-    templateCalculator = """
-    You will write a meta description for a given title. The max character count is 150 characters.
-    The meta description should be a detailed description of the title.
-    The meta description be written in a way that is understandable by a human. Easy and direct language is preferred.
-    Base it on these files data, the meta description is for the calculator in these files.
-    The javascript file is the actual formula for the calculator. And the html/nunjucks file is the template for the calculator.
-
-    Files: {files}
-
-    Title: {question}
-
-    Do not include any additional text, explanations, or comments before or after the response.
-
-    Answer:
-    """
-
-
-    # Template for the sections and all the H2 titles.
-    templateContent = """
-    You will write for the title "{question}". The text will be html ready, each h2 will be a section. There will be no boilerplate html surrounding the sections they will be the highest level of the html.
-    All text should be in a paragraph tag for each text piece.
-    Here is a list of all the H2 titles in the content:
-    1. Formula - The formula for "{question}". It should be a H2 tag. It works like the javascript content and the inputs is from the html/nunjucks file and should mimic them and is only acceptable to change them slighly and if it increases the readability.
-    If there are several return values from the javascript file and about the under the "results" in the results part of the html/nunjucks file then write each forumla with it's name and it's own h3 or h4 "Example".
-    The formula should be inside a code tag with the class "formula". The formula should look the a formula, with the inputs in them as variables. There should be a h3 or h4 "Example" that gives a short and easy to understand example.
-    2. Meaning - The meaning of the "{question}". It should be a H2 tag and explain the meaning of the title but leave out the "calculator" part. It should be a short and easy to understand explanation.
-
-    Content: {files}
-
-    Title: {question}
-
-    Do not include any additional text, explanations, or comments before or after the response.
-
-    Answer:
-    """
-
-
-    # So I can switch templates easily.
-    template = templateCalculator
-
+    # AI model to use.
     model = OllamaLLM(model=current_model_name)
 
     # Meta description.
-    prompt = ChatPromptTemplate.from_template(template)
+    prompt = ChatPromptTemplate.from_template(templateCalculator)
     chain = prompt | model # It runs prompt first then model.
+    
+    meta_description = chain.invoke({"question": title, "files": content_formatted_string})
+
+    character_count = len(meta_description.strip())
+    prompt_meta_description_history = ChatPromptTemplate.from_template(templateMetaDescriptionHistory)
+    chain = prompt_meta_description_history | model # It runs prompt first then model.
+    while character_count > 160:
+        meta_description_history += f"\nAI Result: {meta_description}"
+        meta_description = chain.invoke({"meta_description": meta_description, "character_count": character_count})
+        character_count = len(meta_description)
+        print("character_count", character_count)
+
 
     # Article content.
-    prompt_article = ChatPromptTemplate.from_template(templateContent)
-    chain_article = prompt_article | model # It runs prompt first then model.
+    #prompt_article = ChatPromptTemplate.from_template(templateContent)
+    #chain_article = prompt_article | model # It runs prompt first then model.
+    prompt_formula = ChatPromptTemplate.from_template(templateFormula)
+    chain_formula = prompt_formula | model # It runs prompt first then model.
+    prompt_meaning = ChatPromptTemplate.from_template(templateMeaning) 
+    chain_meaning = prompt_meaning | model
 
-    #meta_description = chain.invoke({"question": title}, input="My question.")
-    meta_description = chain.invoke({"question": title, "files": content_formatted_string})
-    article_content = chain_article.invoke({"question": title, "files": content_formatted_string})
+    
+    #article_content = chain_article.invoke({"question": title, "files": content_formatted_string})
+    article_content = ""
+
+    formula_content = chain_formula.invoke({"files": content_formatted_string})
+
+    article_content += "\n" + formula_content
+
+    meaning_content = chain_meaning.invoke({"title": title})
+
+    article_content += "\n" + meaning_content
+
 
     # Had to make it a dict ("meta_description": meta_description vs just meta_description) because it was giving me this error:
     # TypeError: 'set' object is not subscriptable
@@ -89,9 +91,14 @@ def create_ai_content(title, *content):
     }
 
 
+def test_variables():
+    print("test_variables")
+    print(templateContent)
+
+
 def main():
     print("Running AI main.")
-    title = "Compound Annual Growth Rate Calculator"
+    print(templateContent)
 
 if __name__ == '__main__':
     main()

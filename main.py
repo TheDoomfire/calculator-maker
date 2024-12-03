@@ -38,8 +38,10 @@ shares = ["share", "shares"]
 def main():
 
     # TODO: Make in the command prompt you can choose to delete the chosen one?
-    run = True # If I should run the program (True) OR delete the files (False).
-    allow_ai = False # If I should allow AI to write the article.
+    run = False # If I should run the program (True) OR delete the files (False).
+    allow_ai = False # If I should allow AI to write the article. Because my PC is too slow.
+
+    get_ai_content.test_variables()
 
     print("Welcome to the calculator maker.")
 
@@ -69,9 +71,15 @@ def main():
     # Read the javascript file
     js_content = read_javascript.read_js_file(javascript_folder_path, javascript_file_name)
 
-    # Get the types of the parameters and return value
-    param_types = get_types_javascript.extract_param_types(js_content)
-    return_types = get_types_javascript.extract_return_type(js_content)
+
+    # Get the types of the parameters and return value based on the comments on the function.
+    all_returns = get_types_javascript.extract_function_details(js_content)
+    param_types = all_returns['parameters']
+    return_types = all_returns['returns']
+
+
+    #all_formulas = format_for_javascript.extract_js_constants(js_content)
+
 
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)
     fileName = new_javascript_file_names['file'] # New file name for example "nameForm.js"
@@ -81,11 +89,9 @@ def main():
     #formName = new_javascript_file_names['form'] # New file name for example "nameForm"
     #htmlName = new_javascript_file_names['html'] # New file name for example "name-form"
 
+
     new_javascript_content = create_js_form.generate_js_file(param_types, return_types, new_javascript_file_names)
-
     new_html_content = create_html_file.create_html_content(param_types, return_types, new_javascript_file_names)
-
-    # TODO: Add "js_content", "new_javascript_content" and "new_html_content"
     new_calculator_article_content = create_article_file.create_article_content(param_types, return_types, new_javascript_file_names, [js_content, new_javascript_content,  new_html_content], allow_ai)
 
 
@@ -131,6 +137,7 @@ def main():
     # TODO: Create a javascript file (if it doesn't exit)
 
     # test(param_types, new_javascript_file_names) params, fileNames
+
 
 if __name__ == '__main__':
     main()

@@ -1,1 +1,1 @@
-__all__ = ["format_for_javascript"] # The filenames inside the directory
+__all__ = ["format_for_javascript", "format_for_html", "format_to_html"] # The filenames inside the directory

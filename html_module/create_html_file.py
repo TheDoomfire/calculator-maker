@@ -49,14 +49,16 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
     for param in params:
         if 'name' in param:
             element = param['element']
-            key = param['name']
+            key = param['name'] # TODO: Need a better looking name.
             pretty_name = param['pretty_name']
+            description = param['description']
+            last_word = param['last_word'].capitalize()
             if element == 'currency':
-                new_html_file += f"""\t\t{{{{ currencyInput.inputCurrency("{key}", "{pretty_name}") }}}}\n"""
+                new_html_file += f"""\t\t{{{{ currencyInput.inputCurrency("{key}", "{pretty_name}", "{description}") }}}}\n"""
             elif element == 'percent':
-                new_html_file += f"""\t\t{{{{ percentInput.inputPercent("{key}", "{pretty_name}") }}}}\n"""
+                new_html_file += f"""\t\t{{{{ percentInput.inputPercent("{key}", "{pretty_name}", "{description}") }}}}\n"""
             else: # TODO: Might come to issue later.
-                new_html_file += f"""\t\t{{{{ customInput.inputCustom("{key}", "{pretty_name}", "0 {key}") }}}}\n"""
+                new_html_file += f"""\t\t{{{{ customInput.inputCustom("{key}", "{pretty_name}", "0 {last_word}", "{description}") }}}}\n"""
 
     new_html_file += "\t</form>\n"
 

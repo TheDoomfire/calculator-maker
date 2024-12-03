@@ -1,1 +1,1 @@
-__all__ = ["get_ai_content"] # The filenames inside the directory
+__all__ = ["get_ai_content", "ai_templates"] # The filenames inside the directory

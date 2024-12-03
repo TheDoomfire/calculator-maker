@@ -40,7 +40,7 @@ def generate_js_file(params: Dict[str, str], returns: Dict[str, str], file_names
     """
     formName = file_names['form']
     htmlName = file_names['html']
-    fileName = file_names['file']
+    #fileName = file_names['file']
     functionName = file_names['function']
     name = file_names['name']
     calculator_component = name +".js"
@@ -131,6 +131,7 @@ function {formName}() {{
 
     new_javascript_file +="""\n\n\ttoggle_class_if_contains_this_text();"""
 
+    # TODO: Try to make chart more dynamic. Like if there is only one return value then take the inputs instead, unless they are years or select etc.
     # Creates a chart.
     chartLabels = []
     chartDataset = []

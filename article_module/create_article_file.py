@@ -20,7 +20,11 @@ def create_article_content(params: Dict[str, str], returns: Dict[str, str], file
     pretty_name = file_names['pretty_name']
     nunjucks_file_name = file_names['nunjucks']
 
-    calculator_title = pretty_name + " Calculator"
+    # TODO: Use abbreviations for the names.
+    abbreviation = create_abbreviation(pretty_name)
+
+    # Example: "Compound Annual Growth Rate (CAGR) Calculator"
+    calculator_title = pretty_name + " (" + abbreviation + ") Calculator"
 
     # AI
     ai_meta_description = ""
@@ -35,7 +39,8 @@ def create_article_content(params: Dict[str, str], returns: Dict[str, str], file
 
 
     category = "investment"
-    schema_sub_category = "InvestmentCalculator"
+    # TODO: Make this dynamic.
+    schema_sub_category = "InvestmentCalculator" # InvestmentCalculator
 
     article_content = f"""---
 title: "{calculator_title}"
@@ -72,6 +77,13 @@ schema_sub_category: {schema_sub_category}
 """
     
     return article_content
+
+
+
+def create_abbreviation(input_string):
+    words = input_string.split()  # Split the string into words
+    abbreviation = ''.join(word[0].upper() for word in words)  # Get first letter of each word
+    return abbreviation
 
 
 def main():
