@@ -6,7 +6,7 @@ import webbrowser # For opening the browser.
 # Local Imports
 from javascript_module import read_javascript, get_types_javascript, create_js_form
 from article_module import create_article_file
-from formats import format_for_javascript, format_for_html
+from formats import format_for_javascript, format_for_html, formula_to_html
 from html_module import create_html_file
 from ai_module import get_ai_content
 
@@ -36,6 +36,12 @@ shares = ["share", "shares"]
 
 
 def main():
+    # TODO: Remove "const" from the formulas inside the math tags. # Removed from the mathjs function.
+    # TODO: add p tags around meaning for each line? # Need to check if it works now.
+    # TODO: Pass down a plain text version of the formulas to the ai that gets the examples.
+    # TODO: Make example shorter. # NEED TO TEST!!
+    # TODO: Add newline \n to each heading. # NEED TO TEST!!
+    # TODO: Remove empty formulas to being shown. Such as "tableData = []" # NEED TO TEST!!
 
     # TODO: Make in the command prompt you can choose to delete the chosen one?
     run = False # If I should run the program (True) OR delete the files (False).
@@ -76,10 +82,8 @@ def main():
     all_returns = get_types_javascript.extract_function_details(js_content)
     param_types = all_returns['parameters']
     return_types = all_returns['returns']
-
-
-    #all_formulas = format_for_javascript.extract_js_constants(js_content)
-
+    print("return_types", return_types)
+    
 
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)
     fileName = new_javascript_file_names['file'] # New file name for example "nameForm.js"

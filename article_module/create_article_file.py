@@ -20,17 +20,19 @@ def create_article_content(params: Dict[str, str], returns: Dict[str, str], file
     pretty_name = file_names['pretty_name']
     nunjucks_file_name = file_names['nunjucks']
 
-    # TODO: Use abbreviations for the names.
     abbreviation = create_abbreviation(pretty_name)
 
     # Example: "Compound Annual Growth Rate (CAGR) Calculator"
-    calculator_title = pretty_name + " (" + abbreviation + ") Calculator"
+    name_and_abbreviation = pretty_name + " (" + abbreviation + ")"
+    calculator_title = name_and_abbreviation + " Calculator"
 
     # AI
     ai_meta_description = ""
     ai_article_content = ""
+
+
     if allow_ai: # If I allow AI. Because my PC is too slow.
-        ai_returns = get_ai_content.create_ai_content(calculator_title, files_content)
+        ai_returns = get_ai_content.create_ai_content(calculator_title, returns, files_content)
 
         ai_meta_description = ai_returns['meta_description']
         ai_article_content = ai_returns['article_content']

@@ -101,6 +101,71 @@ def extract_js_constants(js_content):
     ]
 
 
+# THIS IS USED FOR THE MAIN FUNCTION.
+def readable_formulas(js_content, return_types):
+    formulas = []
+    for return_type in return_types:
+        name = return_type['name']
+
+        getVariables = find_const_declaration(js_content, name)
+        splitVariable = getVariables.split('=', 1)
+        const = splitVariable[0].strip()
+        jsFormula = splitVariable[1].strip()
+        if const.startswith("const ") and jsFormula != "[]":
+            #print("jsFormula:", jsFormula)
+
+            # TODO: Use: js_to_mathml to html, and create new function for plainText
+            formula = js_to_readable(jsFormula)
+            plainText = formula['plain_text']
+            html = formula['html']
+            new_object = {'name': name, 'plain_text': plainText, 'html': html}
+            formulas.append(new_object)
+
+    return formulas
+
+
+def js_to_mathml(expression):
+    """
+    Convert a JavaScript math expression to an HTML math tag.
+    
+    Args:
+        expression (str): A math expression in JavaScript syntax
+    
+    Returns:
+        str: An HTML math tag representation of the expression
+    """
+    # Replace Python/JavaScript-specific operators
+
+    if not expression == "":
+        html_expression = expression.replace('**', '^')  # Exponentiation
+        
+        # Wrap the expression in an HTML math tag
+        html_math_tag = f'<math xmlns="http://www.w3.org/1998/Math/MathML" class="formula">{html_expression}</math>'
+        
+        return html_math_tag
+    return ""
+
+
+# TODO: If formula is for example just "Table Data =" then just have it as none.
+def readable_formula(js_content, name):
+    formulas = []
+
+    getVariables = find_const_declaration(js_content, name)
+    splitVariable = getVariables.split('=', 1)
+    #const = splitVariable[0].strip() # .replace("const ", "")
+    jsFormula = splitVariable[1].strip()
+
+    if "[]" not in jsFormula:
+        formula = js_to_mathml(getVariables)
+
+        new_object = {'name': name, 'html': formula.replace("const ", "")}
+        formulas = new_object
+        return formulas
+
+    return {'name': name, 'html': ""}
+
+
+
 def find_const_declaration(js_code: str, variable_name: str) -> str | None:
     """
     Finds and returns the constant declaration for a given variable name in JavaScript code.
@@ -115,39 +180,27 @@ def find_const_declaration(js_code: str, variable_name: str) -> str | None:
     # Regex to match the entire constant declaration line
     pattern = rf"\bconst\s+{re.escape(variable_name)}\s*=\s*.*?;"
     match = re.search(pattern, js_code)
-    return match.group(0) if match else None
+    return match.group(0).rstrip(";") if match else None
 
 
 def main():
     print("Running js_to_readable.py")
     #print(variables.test_js_content)
     # Example Usage
-    js_formula = "a * b + c ** 2 / d >= e"
-    result = js_to_readable(js_formula)
+    js_formula = "cagr = ((finalValue / initialValue) ^ ((1 / years) - 1)) * 100"
 
-    print("Plain Text:", result['plain_text'])
-    print("HTML:", result['html'])
+    result = js_to_mathml(js_formula)
+    print("MathML:", result)
 
+    js_table_formula = "const tableData = [];"
+    test = js_to_mathml(js_table_formula)
+    print("MathML table:", test)
+    # Test with readable_formula
+    js_table_test = readable_formula(variables.test_js_content, "tableData")
+    print("js_table_test", js_table_test['html'])
+    test2 = js_to_mathml(js_table_test['html'])
+    print("Test2:", test2)
 
-    # TODO: Get all Variables from the function.
-    getAllVariables = extract_js_constants(variables.test_js_content)
-    print("getAllVariables:", getAllVariables)
-
-    # Gets the constant variable.
-    getVariable = find_const_declaration(variables.test_js_content, "investmentReturn")
-    print("getConst", getVariable)
-
-    # Split the variable and its value.
-    splitVariable = getVariable.split('=', 1)
-    const = splitVariable[0].strip()
-    jsFormula = splitVariable[1].strip()
-    print("const:", const)
-    print("jsFormula:", jsFormula)
     
-    # TODO: Remove the ; at the end of the formula.
-    new_formula = js_to_readable(jsFormula)
-    print("new_formula", new_formula)
-
-
 if __name__ == '__main__':
     main()

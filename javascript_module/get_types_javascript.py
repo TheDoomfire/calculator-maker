@@ -1,8 +1,11 @@
 import re
 
+# Local Imports
+from formats import format_for_javascript, format_for_html, formula_to_html
 
 # TODO: Make this work! Work with params. Params for description and this for the rest. 
 
+# hello = formula_to_html.readable_formulas(js_content, return_types)
 def extract_function_details(js_code):
     """
     Extracts the parameters, their comments, and return object details from an export default JavaScript function.
@@ -58,12 +61,17 @@ def extract_function_details(js_code):
     if return_match:
         return_block = return_match.group(1)
         for return_item_match in return_comment_pattern.finditer(return_block):
+            name = return_item_match.group(1)
+            formatted_formulas = formula_to_html.readable_formula(js_code, name)
+            print("formatted_formulas", formatted_formulas)
+            html_formula = formatted_formulas['html']
             returns.append({
-                "name": return_item_match.group(1),
-                "pretty_name": make_name_pretty(return_item_match.group(1)),
+                "name": name,
+                "pretty_name": make_name_pretty(name),
                 "element": detect_type(return_item_match.group(2)),
-                "description": find_value_by_key(old_returns, "name", return_item_match.group(1), 'description'),
-                "last_word": get_last_word(return_item_match.group(1))
+                "description": find_value_by_key(old_returns, "name", name, 'description'),
+                "last_word": get_last_word(name),
+                "html_formula": html_formula, # Maybe add prettyname?
             })
 
     return {

@@ -2,7 +2,7 @@ from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
 # Local Imports:
-from .ai_templates import templateContent, templateCalculator, templateMetaDescriptionHistory, templateFormula, templateMeaning
+from .ai_templates import templateContent, templateCalculator, templateMetaDescriptionHistory, templateFormula, templateMeaning, templateExample
 
 
 stronger_model_name = "llama3.2-vision" # Very slow.
@@ -30,7 +30,7 @@ current_model_name = stronger_model_name
 
 
 # Grab all the information needed for an article.
-def create_ai_content(title, *content):
+def create_ai_content(title, returns, *content):
     meta_description_history = ""
 
     # If the content is already an array, use it as-is.
@@ -65,18 +65,47 @@ def create_ai_content(title, *content):
     # Article content.
     #prompt_article = ChatPromptTemplate.from_template(templateContent)
     #chain_article = prompt_article | model # It runs prompt first then model.
-    prompt_formula = ChatPromptTemplate.from_template(templateFormula)
-    chain_formula = prompt_formula | model # It runs prompt first then model.
+    #prompt_formula = ChatPromptTemplate.from_template(templateFormula)
+    #chain_formula = prompt_formula | model # It runs prompt first then model.
     prompt_meaning = ChatPromptTemplate.from_template(templateMeaning) 
     chain_meaning = prompt_meaning | model
+    prompt_example = ChatPromptTemplate.from_template(templateExample) 
+    chain_example = prompt_example | model
 
-    
-    #article_content = chain_article.invoke({"question": title, "files": content_formatted_string})
+
+    # TODO: For each return, create a formula.
     article_content = ""
+    if len(returns) == 1: # If only one return.
+        name = returns[0]['pretty_name']
+        formula = returns[0]['html_formula']
+        new_formula_html = f"""<h2>Formula</h2>
+{formula}
+<h3>Example</h3>
+"""
+        article_content += new_formula_html
+        example = write_example(chain_example, formula)
+        article_content += example
 
-    formula_content = chain_formula.invoke({"files": content_formatted_string})
+    elif formula != "": # To remove empty formulas.
+        new_title = """<h2>Formula</h2>\n\n"""
+        article_content += new_title
+        for ret in returns:
+            print("RET:", ret)
+            formula = ret['html_formula']
+            if formula != "[]": # TODO: It still doesn't work since "Table Data =" still returns.
+                pretty_name = ret['pretty_name']
+                new_formula_html = f"""<h3>{pretty_name} Formula</h3>
 
-    article_content += "\n" + formula_content
+{formula}
+"""
+                article_content += new_formula_html
+                example = write_example(chain_example, formula)
+                article_content += example         
+        
+    #article_content = chain_article.invoke({"question": title, "files": content_formatted_string})
+
+    #formula_content = chain_formula.invoke({"files": content_formatted_string})
+    #article_content += "\n" + formula_content
 
     meaning_content = chain_meaning.invoke({"title": title})
 
@@ -89,6 +118,11 @@ def create_ai_content(title, *content):
         "meta_description": meta_description,
         "article_content": article_content
     }
+
+def write_example(chain, formula):
+    example_content = chain.invoke({"formula": formula})
+    html = "\n<p class='example'>" + example_content + "</p>\n"
+    return html
 
 
 def test_variables():

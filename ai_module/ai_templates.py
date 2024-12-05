@@ -60,6 +60,18 @@ JavaScript Symbol	Meaning	Readable/HTML Equivalent
 Answer:
 """
 
+templateExample = """
+Do not include any additional text, explanations, or comments before or after the response. Nor do you need to include any ".
+Do not add any text such as "For example" or "Example" or "The formula for".
+
+Write an example for this formula: "{formula}".
+The example will be a written explanation of the formula that also uses the formula with real numbers.
+
+The example will be short and easy to understand.
+
+Answer:
+"""
+
 
 templateMeaning = """
 Do not include any additional text, explanations, or comments before or after the response.
@@ -68,6 +80,8 @@ Create text for "{title}" with the heading "Meaning". The heading should be a h2
 
 It should explain plain and simple the meaning of the calculation for {title}.
 It should not explain anything about calculations or formula but the meaning of it.
+
+Please wrap the text in a paragraph tag <p> or several.
 
 
 Answer:
