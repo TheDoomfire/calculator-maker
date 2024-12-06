@@ -2,12 +2,28 @@ from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
 # Local Imports:
-from .ai_templates import templateContent, templateCalculator, templateMetaDescriptionHistory, templateFormula, templateMeaning, templateExample
+from .ai_templates import templateContent, templateCalculator, templateMetaDescriptionHistory, templateFormula, templateMeaning, templateExample, checkExampleCalculation
 
 
-stronger_model_name = "llama3.2-vision" # Very slow.
-weaker_model_name = "llama3.2" # Still very slow :(
-current_model_name = stronger_model_name
+# All models are very slow on my PC.
+image_generating_model_name = "llama3.2-vision"
+code_model_name = "qwen2.5-coder:14b"
+summarization_model_name = "llama3.2"
+current_model_name = summarization_model_name
+
+
+def remove_surrounding_quotes(input_string):
+    """
+    Removes any excess double quotes surrounding a string.
+    
+    Args:
+        input_string (str): The input string potentially surrounded by double quotes.
+    
+    Returns:
+        str: The string without surrounding double quotes.
+    """
+    # Remove leading and trailing quotes
+    return input_string.strip('"')
 
 
 
@@ -57,9 +73,11 @@ def create_ai_content(title, returns, *content):
     chain = prompt_meta_description_history | model # It runs prompt first then model.
     while character_count > 160:
         meta_description_history += f"\nAI Result: {meta_description}"
-        meta_description = chain.invoke({"meta_description": meta_description, "character_count": character_count})
+        meta_description = chain.invoke({"meta_description": meta_description, "character_count": character_count, "question": title, "files": content_formatted_string})
         character_count = len(meta_description)
         print("character_count", character_count)
+
+    meta_description = remove_surrounding_quotes(meta_description)
 
 
     # Article content.
@@ -71,6 +89,8 @@ def create_ai_content(title, returns, *content):
     chain_meaning = prompt_meaning | model
     prompt_example = ChatPromptTemplate.from_template(templateExample) 
     chain_example = prompt_example | model
+    prompt_check_example = ChatPromptTemplate.from_template(checkExampleCalculation) 
+    chain_check_example = prompt_check_example | model
 
 
     # TODO: For each return, create a formula.
@@ -83,23 +103,22 @@ def create_ai_content(title, returns, *content):
 <h3>Example</h3>
 """
         article_content += new_formula_html
-        example = write_example(chain_example, formula)
+        example = write_example(chain_example, chain_check_example, formula)
         article_content += example
 
-    elif formula != "": # To remove empty formulas.
-        new_title = """<h2>Formula</h2>\n\n"""
-        article_content += new_title
+    else:
+        #new_title = """<h2>Formulas</h2>\n\n"""
+        #article_content += new_title
         for ret in returns:
-            print("RET:", ret)
             formula = ret['html_formula']
-            if formula != "[]": # TODO: It still doesn't work since "Table Data =" still returns.
+            if formula != "":
                 pretty_name = ret['pretty_name']
                 new_formula_html = f"""<h3>{pretty_name} Formula</h3>
 
 {formula}
 """
                 article_content += new_formula_html
-                example = write_example(chain_example, formula)
+                example = write_example(chain_example, chain_check_example, formula)
                 article_content += example         
         
     #article_content = chain_article.invoke({"question": title, "files": content_formatted_string})
@@ -119,9 +138,20 @@ def create_ai_content(title, returns, *content):
         "article_content": article_content
     }
 
-def write_example(chain, formula):
+
+# TODO: VERY WRONG!!
+def write_example(chain, chainCheckExample, formula):
     example_content = chain.invoke({"formula": formula})
-    html = "\n<p class='example'>" + example_content + "</p>\n"
+    check_example_calculation = chainCheckExample.invoke({"example": example_content})
+    html = ""
+    if check_example_calculation == "True" or check_example_calculation == "true" or check_example_calculation == '"True"' or check_example_calculation == '"true"':
+        html = "\n<p class='example'>" + example_content + "</p>\n"
+        print("check_example_calculation TRUE: ", check_example_calculation)
+    else:
+        example_content = chainCheckExample.invoke({"example": example_content})
+        html = "\n<p class='example'>" + example_content + "</p>\n"
+        print("check_example_calculation FALSE: ", check_example_calculation)
+
     return html
 
 

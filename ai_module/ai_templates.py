@@ -60,14 +60,38 @@ JavaScript Symbol	Meaning	Readable/HTML Equivalent
 Answer:
 """
 
+
+# TODO: Needs to be shorter and more direct? Needs to follow the formula
 templateExample = """
 Do not include any additional text, explanations, or comments before or after the response. Nor do you need to include any ".
 Do not add any text such as "For example" or "Example" or "The formula for".
 
-Write an example for this formula: "{formula}".
-The example will be a written explanation of the formula that also uses the formula with real numbers.
+Write an example for this formula: "{formula}" and only this formula, assume you will calculate the formula based on these inputs inside the formula.
+The example will be a written explanation of the formula that uses the formula with real numbers.
 
-The example will be short and easy to understand.
+Show the steps and result without explicitly mentioning or displaying the formula.
+
+The example will be very short and easy to understand. Only showing the bare minimum of the example.
+
+Do not include some sort of list of steps.
+
+Answer:
+"""
+
+# If needed a list of steps then it should be inside of a ol list with class "steps".
+
+checkExampleCalculation = """
+Do not include any additional text, explanations, or comments before or after the response.
+
+Check the example calculation is right based on the formula and make sure it is correct.
+
+
+If it is not correct, then change the example calculation to be correct.
+Then return the correct example calculation, in just the same format as the example calculation.
+
+Else return "True" without any additional text nor symbols.
+
+Example: {example}
 
 Answer:
 """
@@ -113,8 +137,10 @@ This meta description currently has {character_count} characters. But it is too 
 
 Current Meta Description: {meta_description}
 
-Current character count: {character_count}
+title: {question}
 
+The meta description is for the calculator in these files.
+files: {files}
 
 Answer:
 """

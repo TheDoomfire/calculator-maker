@@ -63,7 +63,6 @@ def extract_function_details(js_code):
         for return_item_match in return_comment_pattern.finditer(return_block):
             name = return_item_match.group(1)
             formatted_formulas = formula_to_html.readable_formula(js_code, name)
-            print("formatted_formulas", formatted_formulas)
             html_formula = formatted_formulas['html']
             returns.append({
                 "name": name,

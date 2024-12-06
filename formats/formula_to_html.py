@@ -124,6 +124,7 @@ def readable_formulas(js_content, return_types):
     return formulas
 
 
+# TODO: all words inside it should be splitted and capitalized.
 def js_to_mathml(expression):
     """
     Convert a JavaScript math expression to an HTML math tag.
@@ -138,12 +139,34 @@ def js_to_mathml(expression):
 
     if not expression == "":
         html_expression = expression.replace('**', '^')  # Exponentiation
+        html_expression = prettify_formula(html_expression)
         
         # Wrap the expression in an HTML math tag
         html_math_tag = f'<math xmlns="http://www.w3.org/1998/Math/MathML" class="formula">{html_expression}</math>'
         
         return html_math_tag
     return ""
+
+
+
+def prettify_formula(formula: str) -> str:
+    """
+    Prettifies a formula string by converting variable names into more human-readable titles.
+    
+    Args:
+        formula (str): The formula string to prettify.
+    
+    Returns:
+        str: The prettified formula string.
+    """
+    def prettify_variable(variable: str) -> str:
+        # Split camelCase or snake_case and capitalize each word
+        words = re.split(r'[_]', re.sub(r'([a-z])([A-Z])', r'\1 \2', variable))
+        return ' '.join(word.capitalize() for word in words)
+    
+    # Extract variable names and prettify them
+    prettified_formula = re.sub(r'\b[a-zA-Z_]+\b', lambda match: prettify_variable(match.group()), formula)
+    return prettified_formula
 
 
 # TODO: If formula is for example just "Table Data =" then just have it as none.
@@ -158,9 +181,11 @@ def readable_formula(js_content, name):
     if "[]" not in jsFormula:
         formula = js_to_mathml(getVariables)
 
-        new_object = {'name': name, 'html': formula.replace("const ", "")}
+        new_object = {'name': name, 'html': formula.replace("Const ", "")}
         formulas = new_object
         return formulas
+
+    #print("JSFORMULA", jsFormula)
 
     return {'name': name, 'html': ""}
 

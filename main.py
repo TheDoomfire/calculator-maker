@@ -36,18 +36,14 @@ shares = ["share", "shares"]
 
 
 def main():
-    # TODO: Remove "const" from the formulas inside the math tags. # Removed from the mathjs function.
-    # TODO: add p tags around meaning for each line? # Need to check if it works now.
-    # TODO: Pass down a plain text version of the formulas to the ai that gets the examples.
+    # TODO: add p tags around meaning for each line? # Need to check if it works now. # Works for one p tag atleast.
     # TODO: Make example shorter. # NEED TO TEST!!
-    # TODO: Add newline \n to each heading. # NEED TO TEST!!
-    # TODO: Remove empty formulas to being shown. Such as "tableData = []" # NEED TO TEST!!
 
     # TODO: Make in the command prompt you can choose to delete the chosen one?
     run = False # If I should run the program (True) OR delete the files (False).
     allow_ai = False # If I should allow AI to write the article. Because my PC is too slow.
 
-    get_ai_content.test_variables()
+    #get_ai_content.test_variables()
 
     print("Welcome to the calculator maker.")
 
@@ -82,7 +78,6 @@ def main():
     all_returns = get_types_javascript.extract_function_details(js_content)
     param_types = all_returns['parameters']
     return_types = all_returns['returns']
-    print("return_types", return_types)
     
 
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)
