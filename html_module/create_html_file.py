@@ -10,7 +10,6 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
 {{% set calculatorName = "{html_name}" %}}\n\n
 {{% import 'components/inputs/input-custom.njk' as customInput %}}
 """
-    
     all_imports = []
     params_return = [params, returns]
     for pr in params_return:
@@ -23,6 +22,8 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
                     all_imports.append("percent")
                 elif element == "table" and not "table" in all_imports:
                     all_imports.append("table")
+                elif element == "compound_frequency_select" and not "compound_frequency_select" in all_imports:
+                    all_imports.append("compound_frequency_select")
                 #elif element == "year" and not "custom" in all_imports:
                 #    all_imports.append("custom")
     
@@ -34,6 +35,8 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
             new_html_file += f"""{{% import 'components/inputs/input-percent.njk' as percentInput %}}\n"""
         elif imp == "table":
             new_html_file += f"""{{% import 'components/tables/custom-table.njk' as customTable %}}\n"""
+        elif imp == "compound_frequency_select":
+            new_html_file += f"""{{% import "components/select/compounding-frequency.njk" as customSelectCompoundFrequency %}}\n"""
         #elif imp == "custom":
         #    new_html_file += f"""{{% import 'components/inputs/input-custom.njk' as customInput %}}\n"""
 
@@ -57,6 +60,8 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
                 new_html_file += f"""\t\t{{{{ currencyInput.inputCurrency("{key}", "{pretty_name}", "{description}") }}}}\n"""
             elif element == 'percent':
                 new_html_file += f"""\t\t{{{{ percentInput.inputPercent("{key}", "{pretty_name}", "{description}") }}}}\n"""
+            elif element == 'compound_frequency_select':
+                new_html_file += f"""\t\t<label title="{description}" for={key}>{pretty_name}:&nbsp;{{{{ customSelectCompoundFrequency.compoundingFrequency("1", "{key}") }}}}</label>\n""" # TODO: TRY THIS!
             else: # TODO: Might come to issue later.
                 new_html_file += f"""\t\t{{{{ customInput.inputCustom("{key}", "{pretty_name}", "0 {last_word}", "{description}") }}}}\n"""
 
@@ -78,6 +83,8 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
                     placeholder = "$0"
                 elif element == 'percent':
                     placeholder = "0%"
+                elif element == 'unsupported type':
+                    placeholder = "0"
                 else: # TODO: Might come to issue later.
                     placeholder = f"0 {key}"
                 new_html_file += f"""\t\t<span id="result-{key}" class="color-plus big-bold">{placeholder}</span>\n"""

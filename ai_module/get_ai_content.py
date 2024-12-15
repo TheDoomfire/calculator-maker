@@ -6,9 +6,12 @@ from .ai_templates import templateContent, templateCalculator, templateMetaDescr
 
 
 # All models are very slow on my PC.
+summarization_model_name = "llama3.2:3b" # llama3.1:8b AND ollama run llama3.2:3b
 image_generating_model_name = "llama3.2-vision"
 code_model_name = "qwen2.5-coder:14b"
-summarization_model_name = "llama3.2"
+math_model_name = "phi3:medium" # 14B
+code_gemma = "codegemma:7b"
+code_model_name_lightweight = "codegemma:7b"
 current_model_name = summarization_model_name
 
 
@@ -46,7 +49,7 @@ def remove_surrounding_quotes(input_string):
 
 
 # Grab all the information needed for an article.
-def create_ai_content(title, returns, *content):
+def create_ai_content(title, returns, params, *content):
     meta_description_history = ""
 
     # If the content is already an array, use it as-is.
@@ -61,6 +64,7 @@ def create_ai_content(title, returns, *content):
 
     # AI model to use.
     model = OllamaLLM(model=current_model_name)
+    model_code_lightweight = OllamaLLM(model=code_model_name_lightweight) # Maybe just dont use it.
 
     # Meta description.
     prompt = ChatPromptTemplate.from_template(templateCalculator)
@@ -90,9 +94,11 @@ def create_ai_content(title, returns, *content):
     prompt_example = ChatPromptTemplate.from_template(templateExample) 
     chain_example = prompt_example | model
     prompt_check_example = ChatPromptTemplate.from_template(checkExampleCalculation) 
-    chain_check_example = prompt_check_example | model
+    chain_check_example = prompt_check_example | model_code_lightweight
 
 
+    # ----------- Formulas -----------
+    
     # TODO: For each return, create a formula.
     article_content = ""
     if len(returns) == 1: # If only one return.
@@ -109,11 +115,14 @@ def create_ai_content(title, returns, *content):
     else:
         #new_title = """<h2>Formulas</h2>\n\n"""
         #article_content += new_title
+        # TODO: Add example numbers for the formulas. Based on the type like "Currency", "Percent" etc.
+        # TODO: Then make a python function that calculates the answer to that formula.
+
         for ret in returns:
             formula = ret['html_formula']
             if formula != "":
                 pretty_name = ret['pretty_name']
-                new_formula_html = f"""<h3>{pretty_name} Formula</h3>
+                new_formula_html = f"""<h2>{pretty_name} Formula</h2>
 
 {formula}
 """
@@ -141,16 +150,33 @@ def create_ai_content(title, returns, *content):
 
 # TODO: VERY WRONG!!
 def write_example(chain, chainCheckExample, formula):
-    example_content = chain.invoke({"formula": formula})
-    check_example_calculation = chainCheckExample.invoke({"example": example_content})
     html = ""
-    if check_example_calculation == "True" or check_example_calculation == "true" or check_example_calculation == '"True"' or check_example_calculation == '"true"':
-        html = "\n<p class='example'>" + example_content + "</p>\n"
-        print("check_example_calculation TRUE: ", check_example_calculation)
-    else:
-        example_content = chainCheckExample.invoke({"example": example_content})
-        html = "\n<p class='example'>" + example_content + "</p>\n"
-        print("check_example_calculation FALSE: ", check_example_calculation)
+    count = 1
+
+    while True:
+        # Generate the example content using the formula
+        example_content = chain.invoke({"formula": formula})
+        
+        # Check the example calculation
+        check_example_calculation = chainCheckExample.invoke({"example": example_content})
+        
+        # Normalize the check result for consistency
+        normalized_check = check_example_calculation.strip().lower().replace('"', '')
+        
+        # Break the loop if the result is "true"
+        if normalized_check == "true":
+            html = f"\n<p class='example'>{example_content}</p>\n"
+            print("check_example_calculation TRUE: ", check_example_calculation)
+            break
+        
+        print("check_example_calculation not TRUE, retrying...")
+        print("Try: ", count)
+        count += 1
+        if count >= 10:
+            print("Too many retries. Going french.", count)
+            break
+
+
 
     return html
 

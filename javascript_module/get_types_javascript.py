@@ -140,7 +140,7 @@ def find_value_by_key(objects, match_key, match_value, return_key):
     return name """
 
 
-def make_name_pretty(name):
+""" def make_name_pretty(name):
 
     element_type = detect_type(name)  # Ensure this returns correct values
     if element_type != "unsupported type" and element_type != "unsupported":
@@ -154,6 +154,24 @@ def make_name_pretty(name):
 
     # Capitalize each word
     name = ' '.join(word.capitalize() for word in name.split())
+
+    return name """
+
+
+# TODO: See if this works for all caps words.
+def make_name_pretty(name):
+    element_type = detect_type(name)  # Ensure this returns correct values
+    if element_type != "unsupported type" and element_type != "unsupported":
+        # Escape the element_type to avoid regex issues
+        escaped_type = re.escape(element_type)
+        # Removes the element type from the name
+        name = re.sub(rf'\b{escaped_type}\b', '', name, flags=re.IGNORECASE)
+
+    # Separates words by detecting uppercase letters (excluding all-uppercase words)
+    name = re.sub(r'(?<!^)(?<![A-Z])(?=[A-Z])', ' ', name)
+
+    # Capitalize each word, excluding all-uppercase words
+    name = ' '.join(word if word.isupper() else word.capitalize() for word in name.split())
 
     return name
 
@@ -266,7 +284,7 @@ def detect_type(input_string):
         "unit": ["volume", "quantity", "amount", "count", "unit", "units"],
         "table": ["table", "data", "information"],
         "select": ["select", "option", "choice"],
-        "compoundInterestSelect": ["compoundinterestfrequency", "select:compoundinterest"],
+        "compound_frequency_select": ["compoundinterestfrequency", "select:compoundinterest", "compoundfrequency"],
         "year": ["years", "year"],
     }
     

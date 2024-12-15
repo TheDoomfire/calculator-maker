@@ -2,6 +2,7 @@
 import os
 import argparse
 import webbrowser # For opening the browser.
+import subprocess
 
 # Local Imports
 from javascript_module import read_javascript, get_types_javascript, create_js_form
@@ -36,33 +37,65 @@ shares = ["share", "shares"]
 
 
 def main():
-    # TODO: add p tags around meaning for each line? # Need to check if it works now. # Works for one p tag atleast.
-    # TODO: Make example shorter. # NEED TO TEST!!
+    # TODO: Make better examples?
 
     # TODO: Make in the command prompt you can choose to delete the chosen one?
-    run = False # If I should run the program (True) OR delete the files (False).
-    allow_ai = False # If I should allow AI to write the article. Because my PC is too slow.
-
-    #get_ai_content.test_variables()
+    run = True  # If I should run the program (True) OR delete the files (False).
+    allow_ai = True  # If I should allow AI to write the article.
 
     print("Welcome to the calculator maker.")
 
     # ----------- Arguments -----------
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Helps creating the forms for calculators.")
+    parser = argparse.ArgumentParser(description="Helps creating the forms for calculators.", add_help=False) # Adding: add_help=False to see if it helps my command. 
 
-    # Add a required text argument
+    # Add the primary command argument
     parser.add_argument(
-        "text",  # This is a positional argument (no `--` required when passing it)
-        type=str,  # The expected type of the argument
-        help="The text to process",
+        "command",  # The primary command (e.g., test)
+        metavar="command",
+        type=str,
+        help="The primary command to run",
+    )
+
+    # Add optional subcommands or flags
+    parser.add_argument(
+        "-ai",
+        action="store_true",  # Flag (True if provided, False otherwise)
+        help="Disable AI only.",
+    )
+
+    # Add the -d argument as a flag
+    parser.add_argument(
+        "-d",
+        action="store_true",  # Flag (True if provided, False otherwise)
+        help="Disable running and AI.",
     )
 
     # Parse the arguments
     args = parser.parse_args()
 
-    # Get the text from the arguments
-    javascript_file_name = args.text + ".js"
+    if args.d:
+        print("Running deleting mode.")
+        run = False
+        allow_ai = False
+    else:
+        run = True
+        allow_ai = True
+
+    if args.ai:
+        print("Disabling AI.")
+        allow_ai = False
+
+
+    # Derive file name from primary command
+    javascript_file_name = args.command + ".js"
+
+    # Print final settings for confirmation
+    print(f"Command: {args.command}")
+    print(f"Run: {run}")
+    print(f"Allow AI: {allow_ai}")
+    print(f"JavaScript File Name: {javascript_file_name}")
+
 
     # ----------- Main -----------
 
@@ -78,6 +111,9 @@ def main():
     all_returns = get_types_javascript.extract_function_details(js_content)
     param_types = all_returns['parameters']
     return_types = all_returns['returns']
+    print("--- All returns and params for creating a equation example. ---")
+    print("ALL PARAMS:", param_types)
+    print("ALL RETURNS:", return_types)
     
 
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)
@@ -113,6 +149,11 @@ def main():
         article_local_url = local_url + "calc/" + htmlName
         webbrowser.open(article_local_url)
         print("URL:", article_local_url)
+
+    # Open vscode. TODO: Check if it works!
+"""     subprocess.call(["code", new_form_path])
+    subprocess.call(["code", new_html_path])
+    subprocess.call(["code", new_calculator_article_path]) """
 
 """     if run_or_delete != 1:
         # Deletes the form javascript file.

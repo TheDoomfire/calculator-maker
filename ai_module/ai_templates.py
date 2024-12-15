@@ -61,19 +61,19 @@ Answer:
 """
 
 
-# TODO: Needs to be shorter and more direct? Needs to follow the formula
+# TODO: Needs to be shorter and more direct? Needs to follow the formula & provide a better example.
 templateExample = """
-Do not include any additional text, explanations, or comments before or after the response. Nor do you need to include any ".
-Do not add any text such as "For example" or "Example" or "The formula for".
+Prompt:
+Write a concise example using this formula: "{formula}".
 
-Write an example for this formula: "{formula}" and only this formula, assume you will calculate the formula based on these inputs inside the formula.
-The example will be a written explanation of the formula that uses the formula with real numbers.
-
-Show the steps and result without explicitly mentioning or displaying the formula.
-
-The example will be very short and easy to understand. Only showing the bare minimum of the example.
-
-Do not include some sort of list of steps.
+    Use the formula as given, with no modifications or additions.
+    Assume inputs directly within the formula.
+    Do not display or mention the formula, other then as a example.
+    The formula should never be shown the way it is written.
+    Do not include steps, or intermediate calculations.
+    Return only the inputs and the final result in a single, concise statement.
+    Avoid lists, bullet points, or any formatting beyond the example itself.
+    Have a short and brief explanation.
 
 Answer:
 """
@@ -81,19 +81,18 @@ Answer:
 # If needed a list of steps then it should be inside of a ol list with class "steps".
 
 checkExampleCalculation = """
-Do not include any additional text, explanations, or comments before or after the response.
+Prompt:
+Verify the calculation in the provided example based on the formula.
 
-Check the example calculation is right based on the formula and make sure it is correct.
+    If the calculation is correct: Return exactly True. Do not add any additional text, symbols, or formatting.
+    If the calculation is incorrect: Return only the corrected example, formatted exactly like the original but with the correct calculation.
 
-
-If it is not correct, then change the example calculation to be correct.
-Then return the correct example calculation, in just the same format as the example calculation.
-
-Else return "True" without any additional text nor symbols.
+Do not include explanations, comments, or labels like "Corrected Calculation" or "Formula." Do not reformat the example. Return only the required output based on the rules above.
 
 Example: {example}
 
 Answer:
+
 """
 
 

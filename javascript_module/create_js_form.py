@@ -58,16 +58,11 @@ import { toggle_class_if_contains_this_text } from '/scripts/dom/ClassToggler.js
 import { generate_main_chart } from '/scripts/charts/mainChart.js'
 """
 
-    # TODO: Import Calculator function, now I get "compoundAnnualGrowthRateForm.js" instead of "compoundAnnualGrowthRate.js".
-
     new_javascript_file += f"""import {functionName} from '/scripts/calc/{calculator_component}';\n"""
 
     # -------- Add imports for all types --------
     all_types = [] # change to "all_input_types"
     #all_units = ["share", "unit", "piece"]
-
-    # TODO: Make so "returns" looks like "params".
-
 
     # For what imports to use.
     params_return = [params, returns]
@@ -83,6 +78,10 @@ import { generate_main_chart } from '/scripts/charts/mainChart.js'
                     all_types.append("share")
                 elif element == "table" and not "table" in all_types:
                     all_types.append("table")
+                elif element == "compound_frequency_select" and not "compound_frequency_select" in all_types:
+                    all_types.append("compound_frequency_select")
+                elif element == "unit" and not "unit" in all_types:
+                    all_types.append("unit")
 
     for type in all_types:
         if type == "currency":
@@ -91,7 +90,7 @@ import { generate_main_chart } from '/scripts/charts/mainChart.js'
             new_javascript_file += "import { prettifyPercent } from '/scripts/formats/Percent.js';\n"
         elif type == "table":
             new_javascript_file += "import { arrayToTable } from '/scripts/tables/ArrayToTable.js';\n"
-        else:
+        else: # Didn't work once.
             new_javascript_file += "import { separateNumber } from '/scripts/formats/SeparateNumber.js';\n"
 
 
@@ -126,7 +125,7 @@ function {formName}() {{
             tableID = "table-" + htmlName
             new_javascript_file += f"""\tarrayToTable(results.{name}, "{tableID}");\n"""
         else:
-            new_javascript_file += f"""\tdocument.getElementById("{name}").innerHTML = separateNumber(results.{name});\n"""
+            new_javascript_file += f"""\tdocument.getElementById("result-{name}").innerHTML = separateNumber(results.{name});\n"""
 
 
     new_javascript_file +="""\n\n\ttoggle_class_if_contains_this_text();"""

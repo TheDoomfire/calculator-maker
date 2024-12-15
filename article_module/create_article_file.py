@@ -23,16 +23,18 @@ def create_article_content(params: Dict[str, str], returns: Dict[str, str], file
     abbreviation = create_abbreviation(pretty_name)
 
     # Example: "Compound Annual Growth Rate (CAGR) Calculator"
-    name_and_abbreviation = pretty_name + " (" + abbreviation + ")"
+    space = " "
+    if abbreviation: # TODO: TEST THIS!
+        abbreviation = space + abbreviation
+    name_and_abbreviation = pretty_name + abbreviation
     calculator_title = name_and_abbreviation + " Calculator"
 
     # AI
     ai_meta_description = ""
     ai_article_content = ""
 
-
     if allow_ai: # If I allow AI. Because my PC is too slow.
-        ai_returns = get_ai_content.create_ai_content(calculator_title, returns, files_content)
+        ai_returns = get_ai_content.create_ai_content(calculator_title, returns, params, files_content)
 
         ai_meta_description = ai_returns['meta_description']
         ai_article_content = ai_returns['article_content']
@@ -82,10 +84,18 @@ schema_sub_category: {schema_sub_category}
 
 
 
+""" def create_abbreviation(input_string):
+    words = input_string.split()  # Split the string into words
+    abbreviation = ''.join(word[0].upper() for word in words)  # Get first letter of each word
+    return "(" + abbreviation + ")" """
+
 def create_abbreviation(input_string):
     words = input_string.split()  # Split the string into words
     abbreviation = ''.join(word[0].upper() for word in words)  # Get first letter of each word
-    return abbreviation
+    if len(abbreviation) <= 1:  # Check if abbreviation is one character or less
+        return ""  # Return an empty string
+    return "(" + abbreviation + ")"  # Return the formatted abbreviation
+
 
 
 def main():
