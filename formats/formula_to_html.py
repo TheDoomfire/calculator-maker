@@ -191,6 +191,30 @@ def readable_formula(js_content, name):
 
 
 
+# TODO: Fix this!
+def all_formula_variables(js_content, name):
+    variables = []
+    #formulas = []
+
+    getVariables = find_const_declaration(js_content, name)
+    splitVariable = getVariables.split('=', 1)
+    #const = splitVariable[0].strip() # .replace("const ", "")
+    jsFormula = splitVariable[1].strip()
+
+    if "[]" not in jsFormula:
+        formula = js_to_mathml(getVariables)
+
+        new_object = {'name': name, 'html': formula.replace("Const ", "")}
+        variables = new_object
+        return variables
+
+    #print("JSFORMULA", jsFormula)
+
+    return {'name': name, 'html': ""}
+
+
+
+
 def find_const_declaration(js_code: str, variable_name: str) -> str | None:
     """
     Finds and returns the constant declaration for a given variable name in JavaScript code.
@@ -225,6 +249,8 @@ def main():
     print("js_table_test", js_table_test['html'])
     test2 = js_to_mathml(js_table_test['html'])
     print("Test2:", test2)
+    js_table_test2 = all_formula_variables(variables.test_js_content, "tableData")
+    print("js_table_test2", js_table_test2)
 
     
 if __name__ == '__main__':

@@ -3,9 +3,8 @@ import re
 # Local Imports
 from formats import format_for_javascript, format_for_html, formula_to_html
 
-# TODO: Make this work! Work with params. Params for description and this for the rest. 
 
-# hello = formula_to_html.readable_formulas(js_content, return_types)
+# TODO: Make them return a list of all variables uses for the formula.
 def extract_function_details(js_code):
     """
     Extracts the parameters, their comments, and return object details from an export default JavaScript function.
@@ -71,6 +70,7 @@ def extract_function_details(js_code):
                 "description": find_value_by_key(old_returns, "name", name, 'description'),
                 "last_word": get_last_word(name),
                 "html_formula": html_formula, # Maybe add prettyname?
+                "formula_variables": "" # TODO: Add formula variables!
             })
 
     return {
