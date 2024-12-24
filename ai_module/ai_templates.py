@@ -65,11 +65,10 @@ Answer:
 templateExample = """
 Prompt:
 Write a concise example using this formula: "{formula}".
-
+Use these exact numbers that calculates that formula: {formula_example}
     Use the formula as given, with no modifications or additions.
     Assume inputs directly within the formula.
     Do not display or mention the formula, other then as a example.
-    The formula should never be shown the way it is written.
     Do not include steps, or intermediate calculations.
     Return only the inputs and the final result in a single, concise statement.
     Avoid lists, bullet points, or any formatting beyond the example itself.

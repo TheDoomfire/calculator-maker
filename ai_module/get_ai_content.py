@@ -1,8 +1,15 @@
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
+import os
+import sys
+import random
+import re
 
 # Local Imports:
+# ERROR: if I run from main it's "ai_templates" otherwise if I run the main.py it's ".ai_templates".
 from .ai_templates import templateContent, templateCalculator, templateMetaDescriptionHistory, templateFormula, templateMeaning, templateExample, checkExampleCalculation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import variables
 
 
 # All models are very slow on my PC.
@@ -11,7 +18,7 @@ image_generating_model_name = "llama3.2-vision"
 code_model_name = "qwen2.5-coder:14b"
 math_model_name = "phi3:medium" # 14B
 code_gemma = "codegemma:7b"
-code_model_name_lightweight = "codegemma:7b"
+code_model_name_lightweight = summarization_model_name #"codegemma:7b"
 current_model_name = summarization_model_name
 
 
@@ -103,13 +110,20 @@ def create_ai_content(title, returns, params, *content):
     article_content = ""
     if len(returns) == 1: # If only one return.
         name = returns[0]['pretty_name']
-        formula = returns[0]['html_formula']
+        formula = returns[0]['html']
+        formula_example = returns[0]['html_ugly']
         new_formula_html = f"""<h2>Formula</h2>
 {formula}
 <h3>Example</h3>
 """
+        
+        # TODO: Use create_example_formula here?
+        #formula_example = extract_text_from_tags(formula)
+        #print("FORMULA EXAMPLE before fix", formula_example)
+        formula_example = create_example_formula(formula_example, params, returns)
+
         article_content += new_formula_html
-        example = write_example(chain_example, chain_check_example, formula)
+        example = write_example(chain_example, chain_check_example, formula, formula_example)
         article_content += example
 
     else:
@@ -119,7 +133,17 @@ def create_ai_content(title, returns, params, *content):
         # TODO: Then make a python function that calculates the answer to that formula.
 
         for ret in returns:
+            print("-------------------------------------")
+            print("RETURN:", ret)
+            print("-------------------------------------")
             formula = ret['html_formula']
+            formula_example = ret['html_ugly']
+            print("-------------------------------------")
+            print("FORMULA in ret:", formula)
+            print("-------------------------------------")
+            formula_variables = ret['formula_variables']
+            mylist = get_names_and_elements_by_words(params, formula_variables)
+            print("mylist", mylist)
             if formula != "":
                 pretty_name = ret['pretty_name']
                 new_formula_html = f"""<h2>{pretty_name} Formula</h2>
@@ -127,7 +151,10 @@ def create_ai_content(title, returns, params, *content):
 {formula}
 """
                 article_content += new_formula_html
-                example = write_example(chain_example, chain_check_example, formula)
+                formula = extract_text_from_tags(formula)
+                #print("FORMULA EXAMPLE before fix", formula_example)
+                formula_example = create_example_formula(formula_example, params, returns)
+                example = write_example(chain_example, chain_check_example, formula, formula_example)
                 article_content += example         
         
     #article_content = chain_article.invoke({"question": title, "files": content_formatted_string})
@@ -148,20 +175,224 @@ def create_ai_content(title, returns, params, *content):
     }
 
 
-# TODO: VERY WRONG!!
-def write_example(chain, chainCheckExample, formula):
+def extract_text_from_tags(html):
+    """
+    Extracts text from all HTML tags in a given string.
+    
+    Parameters:
+        html (str): A string containing HTML content.
+        
+    Returns:
+        list: A list of text content from all tags.
+    """
+    # Regular expression to match content inside HTML tags
+    return re.findall(r'>([^<]+)<', html)
+
+
+def get_names_and_elements_by_words(params, word_list):
+    """
+    Checks if any word from the word list exists in the 'name' field of the params
+    and returns the corresponding 'name' and 'element' values.
+
+    :param params: List of dictionaries containing parameter details
+    :param word_list: List of words to search for in the 'name' field
+    :return: List of dictionaries with matched 'name' and 'element' pairs
+    """
+    matched_items = []
+    
+    for param in params:
+        # Check if any word in the word_list is present in the 'name' field
+        if any(word in param['name'] for word in word_list):
+            matched_items.append({'name': param['name'], 'element': param['element']})
+    
+    return matched_items
+
+""" 
+    // WORKS!
+    const fundAssets = totalInvestments + cashAndCashEquivalents + accountReceivable;
+
+    // WORKS!
+    const fundLiabilities = shortTermLiabilities + longTermLiabilities;
+
+    // DOESNT WORK! Doesnt understand the element type (currency, percent, etc.)
+    const nav = fundAssets - fundLiabilities; 
+"""
+
+# Create a example formula.
+def create_example_formula(formula, params, returns):
+    # If the formula is a list, get the first element.
+    print("-------------------------------------")
+    print("FORMULA:", formula)
+    print("-------------------------------------")
+    if isinstance(formula, list) or isinstance(formula, tuple):
+        formula = formula[0] # ERROR!
+
+    # TODO:
+    # Make it grab the element type (currency, percent, etc.) from already solved equations if its needed in futher down calculation.
+
+    splitted_formula = formula.split()
+    print("Splitted Formula:", splitted_formula)
+    
+    last_char = None
+    solution_variable = ""
+    all_elements = []
+    all_numbers = []
+    all_numbers_with_elements = []
+    # --- Get all the elements. ---
+    count = 0
+    for char in splitted_formula:
+
+        # Trying to get the solution variable. Example: solution_variable = 1 + 1
+        if count == 0:
+            solution_variable = char
+        count += 1
+
+        # If more then one character (+ - * / etc.)
+        # TODO: Maybe have to add to check ret for elements too? because it wont exist inside of params.
+
+        if len(char) > 1:
+            print("Variable:", char)
+            if last_char == None:
+                print("Returns")
+                for ret in returns:
+                    if ret['name'] == char:
+                        print("Return:", ret)
+                        element = ret['element']
+                        print("Element:", element)
+                        all_elements.append(element)
+
+                        # NOT WORKING!!!
+                        if ret != solution_variable:
+                            print("Not Solution Variable!!!")
+                            random_number = made_up_numbers(element, all_numbers)
+                            all_numbers.append(random_number)
+                            if element == "currency":
+                                all_numbers_with_elements.append("$" + str(random_number))
+                            elif element == "percent":
+                                all_numbers_with_elements.append(str(random_number) + "%")
+
+            else:
+                print("Params")
+                for param in params:
+                    if param['name'] == char:
+                        print("Param:", param)
+                        element = param['element']
+                        print("Element:", element)
+
+                        all_elements.append(element)
+                        random_number = made_up_numbers(element, all_numbers)
+                        all_numbers.append(random_number)
+                        if element == "currency":
+                            all_numbers_with_elements.append("$" + str(random_number))
+                        elif element == "percent":
+                            all_numbers_with_elements.append(str(random_number) + "%")
+
+            last_char = char
+        else:
+            print("Character:", char)
+
+    
+    # ERROR: If both rhs is also in return they dont show in either.
+    print("All Elements:", all_elements)
+    print("All Numbers with elements:", all_numbers_with_elements)
+    
+    formula_solution = formula.split("=")[0]
+    formula_right_hand_side = formula.split("=")[1]
+    print("Formula Right Hand Side:", formula_right_hand_side)
+    print("Formula Solution:", formula_solution) # just returns nav
+
+    rhs_chars = formula_right_hand_side.split()
+    # TODO: Fix this. Make it turn "hello + jkasdjka + hey" into numbers like "1 + 2 + 3".
+    rhs_words = []
+    count = 0
+    for char in rhs_chars:
+        if len(char) > 1:
+            #print("RHS Chars:", char)
+            rhs_chars[rhs_chars.index(char)] = str(all_numbers[count]) # ERROR: IndexError: list index out of range
+            rhs_words.append(char)
+            count += 1
+
+    rhs_formula = " ".join(rhs_chars)
+
+    print("RHS Words:", rhs_words)
+    print("RHS Chars:", rhs_chars)
+    print("RHS Formula:", rhs_formula)
+
+    solution = eval(rhs_formula)
+    print("Solution:", solution)
+
+    completed_formula = rhs_formula + " = " + str(solution)
+    print("All Elements:", all_elements)
+    print("Completed Formula:", completed_formula)
+
+
+
+
+    fixed_element_list = all_elements[1:] + all_elements[:1] # Hope it works!
+    print("Fixed Elements:", fixed_element_list)
+
+    # TODO: Check if it works!
+    parts = completed_formula.split()
+    count = 0
+    for i, part in enumerate(parts):
+        if len(part) > 1:
+            if all_elements[count] == "currency":
+                parts[i] = "$" + str(part)
+            count += 1
+
+    fancy_formula = " ".join(parts)
+    print("Fancy Formula:", fancy_formula)
+    
+
+    # TODO: Make up numbers for the formula.
+    #for rhs in formula_right_hand_side:
+    #    print()
+    
+
+    return fancy_formula
+
+
+# Map formats to symbols
+def format_number(value, fmt):
+    if fmt == 'currency':
+        return f"${value}"
+    elif fmt == 'percent':
+        return f"{value}%"
+    return value  # Default if no match
+
+
+# TODO: Add percentages, units, etc!
+def made_up_numbers(element, last_numbers):
+    number = False
+    if element == "currency":
+        # Generate random number between 1000-20000 in steps of 100
+        while True:
+            random_number = random.randrange(1000, 20000, 100)
+            if random_number not in last_numbers:
+                number = random_number
+                break
+    return number
+
+
+# TODO: ERROR!
+# Loops forever.
+def write_example(chain, chainCheckExample, formula, formula_example):
     html = ""
     count = 1
 
     while True:
         # Generate the example content using the formula
-        example_content = chain.invoke({"formula": formula})
+        example_content = chain.invoke({"formula": formula, "formula_example": formula_example}) # Right inputs.
+        print("EXAMPLE CONTENT:", example_content)
         
         # Check the example calculation
         check_example_calculation = chainCheckExample.invoke({"example": example_content})
         
         # Normalize the check result for consistency
-        normalized_check = check_example_calculation.strip().lower().replace('"', '')
+        #normalized_check = check_example_calculation.strip().lower().replace('"', '')
+
+        # TODO: Remove this maybe?
+        normalized_check = "true"
         
         # Break the loop if the result is "true"
         if normalized_check == "true":
@@ -188,7 +419,9 @@ def test_variables():
 
 def main():
     print("Running AI main.")
-    print(templateContent)
+    #print(templateContent)
+    print(create_example_formula(variables.test_formula, variables.test_params, variables.test_returns))
+    print(made_up_numbers("currency", [1000, 2000, 3000]))
 
 if __name__ == '__main__':
     main()

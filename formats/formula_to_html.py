@@ -137,15 +137,18 @@ def js_to_mathml(expression):
     """
     # Replace Python/JavaScript-specific operators
 
+    print("expression", expression)
     if not expression == "":
         html_expression = expression.replace('**', '^')  # Exponentiation
+        html_math_tag_ugly = html_expression
+        print("html_math_tag_ugly", html_math_tag_ugly)
         html_expression = prettify_formula(html_expression)
         
         # Wrap the expression in an HTML math tag
         html_math_tag = f'<math xmlns="http://www.w3.org/1998/Math/MathML" class="formula">{html_expression}</math>'
         
-        return html_math_tag
-    return ""
+        return {"html": html_math_tag, "html_ugly": html_math_tag_ugly}
+    return "", ""
 
 
 
@@ -170,6 +173,7 @@ def prettify_formula(formula: str) -> str:
 
 
 # TODO: If formula is for example just "Table Data =" then just have it as none.
+# TODO: Add a function that returns the formula and the variables.
 def readable_formula(js_content, name):
     formulas = []
 
@@ -178,16 +182,26 @@ def readable_formula(js_content, name):
     #const = splitVariable[0].strip() # .replace("const ", "")
     jsFormula = splitVariable[1].strip()
 
-    if "[]" not in jsFormula:
-        formula = js_to_mathml(getVariables)
+    words = re.findall(r'\b\w+\b', jsFormula)
+    # TODO: Add array to words for each element.
 
-        new_object = {'name': name, 'html': formula.replace("Const ", "")}
+    if "[]" not in jsFormula:
+        both_formula = js_to_mathml(getVariables)
+        formula_html = both_formula['html']
+        formula_ugly = both_formula['html_ugly']
+
+        new_object = {
+            'name': name, 
+            'html': formula_html.replace("Const ", ""), 
+            "formula_variables": words,
+            'html_ugly': formula_ugly.replace("const ", "")
+            }
         formulas = new_object
         return formulas
 
     #print("JSFORMULA", jsFormula)
 
-    return {'name': name, 'html': ""}
+    return {'name': name, 'html': "", "formula_variables": words}
 
 
 
@@ -201,7 +215,14 @@ def all_formula_variables(js_content, name):
     #const = splitVariable[0].strip() # .replace("const ", "")
     jsFormula = splitVariable[1].strip()
 
+    print("splitVariable:", splitVariable)
+    print("jsFormula:", jsFormula)
+    print("Splitted:", jsFormula.split())
+    words = re.findall(r'\b\w+\b', jsFormula)
+    print("words:", words)
+
     if "[]" not in jsFormula:
+        print("NOOOOT")
         formula = js_to_mathml(getVariables)
 
         new_object = {'name': name, 'html': formula.replace("Const ", "")}
@@ -249,7 +270,7 @@ def main():
     print("js_table_test", js_table_test['html'])
     test2 = js_to_mathml(js_table_test['html'])
     print("Test2:", test2)
-    js_table_test2 = all_formula_variables(variables.test_js_content, "tableData")
+    js_table_test2 = all_formula_variables(variables.test_js_content2, "fundAssets")
     print("js_table_test2", js_table_test2)
 
     

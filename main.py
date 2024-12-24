@@ -114,6 +114,8 @@ def main():
     print("--- All returns and params for creating a equation example. ---")
     print("ALL PARAMS:", param_types)
     print("ALL RETURNS:", return_types)
+    print("")
+    print("---------------------------------------------")
     
 
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)

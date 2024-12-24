@@ -62,7 +62,16 @@ def extract_function_details(js_code):
         for return_item_match in return_comment_pattern.finditer(return_block):
             name = return_item_match.group(1)
             formatted_formulas = formula_to_html.readable_formula(js_code, name)
+            print("-----------------------------")
+            print("FORMATTED FORMULAS", formatted_formulas)
+            print("-----------------------------")
             html_formula = formatted_formulas['html']
+            html_formula_ugly = formatted_formulas['html_ugly']
+            html_formula_variables = formatted_formulas['formula_variables'] # ERROR: WRONG OUTPUT
+            print("HTML FORMULA VARIABLES:", html_formula_variables) # TODO: Make them object like: { name: value, element: element_type } ?
+            # TODO: Make a formula that has not splitted the variables.
+            print("HTML FORMULA:", html_formula)
+            #filled_formula = fill_and_calculate_formula(html_formula_variables, html_formula) # ERROR
             returns.append({
                 "name": name,
                 "pretty_name": make_name_pretty(name),
@@ -70,7 +79,9 @@ def extract_function_details(js_code):
                 "description": find_value_by_key(old_returns, "name", name, 'description'),
                 "last_word": get_last_word(name),
                 "html_formula": html_formula, # Maybe add prettyname?
-                "formula_variables": "" # TODO: Add formula variables!
+                "formula_variables": html_formula_variables,
+                "html_ugly": html_formula_ugly,
+                #"filled_formula": filled_formula,
             })
 
     return {
@@ -78,6 +89,10 @@ def extract_function_details(js_code):
         "parameters": parameters,
         "returns": returns
     }
+
+
+def create_formula(params, name, element, string_formula):
+    print("Hello")
 
 
 def get_last_word(input_string):
@@ -225,6 +240,56 @@ def extract_return_type(js_content):
        })
    
    return processed_returns
+
+
+
+def fill_and_calculate_formula(matched_items, formula):
+    """
+    Replaces variable names in the formula with invented numbers based on the element type
+    and calculates the result of the formula.
+
+    :param matched_items: List of dictionaries with 'name' and 'element' keys
+    :param formula: String formula containing variable names
+    :return: A tuple with the filled formula and its calculated result
+    """
+    # Predefined values for different elements
+    value_pool = {
+        'currency': [1500, 1250, 1000, 500, 250, 100],
+        'percent': [10, 7, 5, 2],
+        'units': [100, 50, 25, 15]
+    }
+    
+    used_values = {key: [] for key in value_pool.keys()}  # Track used values
+    
+    # Helper function to get a unique value based on element type
+    def get_unique_value(element):
+        if element not in value_pool:
+            raise ValueError(f"Unknown element type: {element}")
+        
+        # Find a value that hasn't been used yet
+        for value in value_pool[element]:
+            if value not in used_values[element]:
+                used_values[element].append(value)
+                return value
+        
+        raise ValueError(f"No unique values left for element type: {element}")
+    
+    # Replace variable names in the formula with generated values
+    for item in matched_items:
+        print("ITEM:", item) # totalInvestments ERROR: Problem seems to be its no list at all but a string!
+        print("ITEM2:", item[0])
+        name = item['name']
+        element = item['element']
+        value = get_unique_value(element)
+        formula = formula.replace(name, str(value))
+    
+    # Calculate the result of the filled formula
+    try:
+        result = eval(formula)
+    except Exception as e:
+        raise ValueError(f"Error evaluating the formula: {e}")
+    
+    return formula, result
 
 
 
