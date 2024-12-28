@@ -63,6 +63,21 @@ Answer:
 
 # TODO: Needs to be shorter and more direct? Needs to follow the formula & provide a better example.
 templateExample = """
+Write a concise example using this formula: {formula}. Use the exact numbers provided in {formula_example}. 
+Present the formula exactly as given, with no additions, modifications, or characters like quotes, brackets, or parentheses around it. 
+Assume the inputs are directly applied in the formula. 
+Only show the inputs and the calculated result in a single, concise statement. Avoid steps, intermediate calculations, or additional formatting. 
+Include a short, clear explanation of the result.
+Do not show the formula, other then as a example.
+The example is already displayed under the formula so no need to show it again.
+Do not include any additional text, explanations, or comments before or after the response.
+Do not include stuff like "For example" or "Example" or "The formula for" or "This result represents" or "Explanation:" or anything else like that, assume the reader already knows that.
+Keep the currency symbols and the percentage signs if they exist in the number formula example.
+"""
+
+
+# Old example.
+oldExample = """
 Prompt:
 Write a concise example using this formula: "{formula}".
 Use these exact numbers that calculates that formula: {formula_example}
@@ -113,7 +128,7 @@ Answer:
 # Meta description.
 templateCalculator = """
 Do not include any additional text, explanations, or comments before or after the response.
-You will write a meta description for a given title. The max character count is 150 characters.
+You will write a meta description for a given title. The max character count is 150 characters, and don't include the character count in the meta description.
 The meta description should be a detailed description of the title.
 The meta description be written in a way that is understandable by a human. Easy and direct language is preferred.
 Base it on these files data, the meta description is for the calculator in these files.

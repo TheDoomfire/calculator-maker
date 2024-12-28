@@ -211,6 +211,7 @@ def all_formula_variables(js_content, name):
     #formulas = []
 
     getVariables = find_const_declaration(js_content, name)
+    print("getVariables:", getVariables)
     splitVariable = getVariables.split('=', 1)
     #const = splitVariable[0].strip() # .replace("const ", "")
     jsFormula = splitVariable[1].strip()

@@ -13,7 +13,7 @@ from config import variables
 
 
 # All models are very slow on my PC.
-summarization_model_name = "llama3.2:3b" # llama3.1:8b AND ollama run llama3.2:3b
+summarization_model_name = "llama3.2:3b" # llama3.1:8b AND ollama run llama3.2:3b AND "mistral:7b"
 image_generating_model_name = "llama3.2-vision"
 code_model_name = "qwen2.5-coder:14b"
 math_model_name = "phi3:medium" # 14B
@@ -224,8 +224,14 @@ def create_example_formula(formula, params, returns):
     print("-------------------------------------")
     print("FORMULA:", formula)
     print("-------------------------------------")
+    print("Returns:", returns)
+    print("-------------------------------------")
+    print("Params:", params)
+    print("-------------------------------------")
     if isinstance(formula, list) or isinstance(formula, tuple):
         formula = formula[0] # ERROR!
+
+    items = [returns, params]
 
     # TODO:
     # Make it grab the element type (currency, percent, etc.) from already solved equations if its needed in futher down calculation.
@@ -241,6 +247,9 @@ def create_example_formula(formula, params, returns):
     # --- Get all the elements. ---
     count = 0
     for char in splitted_formula:
+        #print("-------------------------------------")
+        #print("Char:", char)
+        #print("-------------------------------------")
 
         # Trying to get the solution variable. Example: solution_variable = 1 + 1
         if count == 0:
@@ -249,36 +258,15 @@ def create_example_formula(formula, params, returns):
 
         # If more then one character (+ - * / etc.)
         # TODO: Maybe have to add to check ret for elements too? because it wont exist inside of params.
+        # What if the character a = x + y is all returns?
+        # Make ir run twice with params and returns so I dont have to write the code twice.
 
         if len(char) > 1:
-            print("Variable:", char)
-            if last_char == None:
-                print("Returns")
-                for ret in returns:
-                    if ret['name'] == char:
-                        print("Return:", ret)
-                        element = ret['element']
-                        print("Element:", element)
-                        all_elements.append(element)
-
-                        # NOT WORKING!!!
-                        if ret != solution_variable:
-                            print("Not Solution Variable!!!")
-                            random_number = made_up_numbers(element, all_numbers)
-                            all_numbers.append(random_number)
-                            if element == "currency":
-                                all_numbers_with_elements.append("$" + str(random_number))
-                            elif element == "percent":
-                                all_numbers_with_elements.append(str(random_number) + "%")
-
-            else:
-                print("Params")
-                for param in params:
-                    if param['name'] == char:
-                        print("Param:", param)
-                        element = param['element']
-                        print("Element:", element)
-
+            
+            for item in items:
+                for i in item:
+                    if i['name'] == char:
+                        element = i['element']
                         all_elements.append(element)
                         random_number = made_up_numbers(element, all_numbers)
                         all_numbers.append(random_number)
@@ -286,10 +274,11 @@ def create_example_formula(formula, params, returns):
                             all_numbers_with_elements.append("$" + str(random_number))
                         elif element == "percent":
                             all_numbers_with_elements.append(str(random_number) + "%")
-
-            last_char = char
+                        else:
+                            all_numbers_with_elements.append(str(random_number))
+            #last_char = char
         else:
-            print("Character:", char)
+            print("Character (NOT FOUND):", char)
 
     
     # ERROR: If both rhs is also in return they dont show in either.
@@ -300,6 +289,13 @@ def create_example_formula(formula, params, returns):
     formula_right_hand_side = formula.split("=")[1]
     print("Formula Right Hand Side:", formula_right_hand_side)
     print("Formula Solution:", formula_solution) # just returns nav
+
+    # ERROR: I get this:
+    #All Elements: ['currency']
+    #All Numbers with elements: ['$17100']
+    #Formula Right Hand Side:  fundAssets - fundLiabilities
+    #Formula Solution: nav
+    # But there should be a total of 3 elements.
 
     rhs_chars = formula_right_hand_side.split()
     # TODO: Fix this. Make it turn "hello + jkasdjka + hey" into numbers like "1 + 2 + 3".
@@ -350,6 +346,20 @@ def create_example_formula(formula, params, returns):
     
 
     return fancy_formula
+
+
+""" 
+                    # NOT WORKING!!!
+                    if ret != solution_variable:
+                        print("--- Not Solution Variable:", char)
+                        random_number = made_up_numbers(element, all_numbers)
+                        all_numbers.append(random_number)
+                        if element == "currency":
+                            print("Currency:", random_number, char)
+                            all_numbers_with_elements.append("$" + str(random_number))
+                        elif element == "percent":
+                            print("Percent:", random_number, char)
+                            all_numbers_with_elements.append(str(random_number) + "%") """
 
 
 # Map formats to symbols
