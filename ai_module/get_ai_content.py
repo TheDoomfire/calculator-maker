@@ -109,12 +109,11 @@ def create_ai_content(title, returns, params, *content):
     # TODO: For each return, create a formula.
     article_content = ""
     if len(returns) == 1: # If only one return.
-        name = returns[0]['pretty_name']
-        formula = returns[0]['html']
+        #name = returns[0]['pretty_name']
+        formula = returns[0]['html_formula']
         formula_example = returns[0]['html_ugly']
         new_formula_html = f"""<h2>Formula</h2>
 {formula}
-<h3>Example</h3>
 """
         
         # TODO: Use create_example_formula here?
@@ -189,6 +188,23 @@ def extract_text_from_tags(html):
     return re.findall(r'>([^<]+)<', html)
 
 
+
+def simplify_number(num, max_decimals=5):
+    """Simplifies a number by rounding to an appropriate number of decimals."""
+    if num == 0:
+        return 0
+    magnitude = abs(num)
+    
+    # Determine the number of decimals based on the size of the number
+    if magnitude >= 1:
+        decimals = max(1, max_decimals - len(str(int(magnitude))))  # Fewer decimals for large numbers
+    else:
+        decimals = max_decimals  # Keep more decimals for small numbers
+
+    return round(num, decimals)
+
+
+
 def get_names_and_elements_by_words(params, word_list):
     """
     Checks if any word from the word list exists in the 'name' field of the params
@@ -245,16 +261,16 @@ def create_example_formula(formula, params, returns):
     all_numbers = []
     all_numbers_with_elements = []
     # --- Get all the elements. ---
-    count = 0
+    #count = 0
     for char in splitted_formula:
         #print("-------------------------------------")
         #print("Char:", char)
         #print("-------------------------------------")
 
         # Trying to get the solution variable. Example: solution_variable = 1 + 1
-        if count == 0:
-            solution_variable = char
-        count += 1
+        #if count == 0:
+        #    solution_variable = char
+        #count += 1
 
         # If more then one character (+ - * / etc.)
         # TODO: Maybe have to add to check ret for elements too? because it wont exist inside of params.
@@ -268,6 +284,7 @@ def create_example_formula(formula, params, returns):
                     if i['name'] == char:
                         element = i['element']
                         all_elements.append(element)
+                        print("Elements:", element)
                         random_number = made_up_numbers(element, all_numbers)
                         all_numbers.append(random_number)
                         if element == "currency":
@@ -315,25 +332,31 @@ def create_example_formula(formula, params, returns):
     print("RHS Formula:", rhs_formula)
 
     solution = eval(rhs_formula)
-    print("Solution:", solution)
+    print("Solution (without rounding):", solution, type(solution))
+    solution = simplify_number(solution)
+    print("Solution (with rounding):", solution, type(solution))
 
-    completed_formula = rhs_formula + " = " + str(solution)
+    # Changed place on solution and rhs_formula. Might not work correctly..
+    #completed_formula = str(solution) + " = " + rhs_formula
+    completed_formula =  rhs_formula + " = " + str(solution)
     print("All Elements:", all_elements)
     print("Completed Formula:", completed_formula)
 
 
 
 
-    fixed_element_list = all_elements[1:] + all_elements[:1] # Hope it works!
+    fixed_element_list = all_elements[1:] + all_elements[:1]
     print("Fixed Elements:", fixed_element_list)
 
-    # TODO: Check if it works!
     parts = completed_formula.split()
     count = 0
     for i, part in enumerate(parts):
         if len(part) > 1:
-            if all_elements[count] == "currency":
+            print("count:", count)
+            if all_elements[count] == "currency": # TODO: Error here. IndexError: list index out of range. If I have a constant (like 100 or whatever) it won't have a element type.
                 parts[i] = "$" + str(part)
+            #elif all_elements[count] == "percent":
+            #    parts[i] = str(part) + "%"
             count += 1
 
     fancy_formula = " ".join(parts)
@@ -378,6 +401,19 @@ def made_up_numbers(element, last_numbers):
         # Generate random number between 1000-20000 in steps of 100
         while True:
             random_number = random.randrange(1000, 20000, 100)
+            if random_number not in last_numbers:
+                number = random_number
+                break
+    elif element == "percent":
+        # Generate random number between 1-100 in steps of 1
+        while True:
+            random_number = random.randrange(1, 30, 1)
+            if random_number not in last_numbers:
+                number = random_number
+                break
+    else:
+        while True:
+            random_number = random.randrange(100, 10000, 100)
             if random_number not in last_numbers:
                 number = random_number
                 break

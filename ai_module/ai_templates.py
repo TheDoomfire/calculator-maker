@@ -72,7 +72,9 @@ Do not show the formula, other then as a example.
 The example is already displayed under the formula so no need to show it again.
 Do not include any additional text, explanations, or comments before or after the response.
 Do not include stuff like "For example" or "Example" or "The formula for" or "This result represents" or "Explanation:" or anything else like that, assume the reader already knows that.
+Do not include anything around the formula or it's numbers, like "['" or "']" or "(" or ")" or anything else like that.
 Keep the currency symbols and the percentage signs if they exist in the number formula example.
+Display all numbers in the example in the same format as the formula.
 """
 
 
