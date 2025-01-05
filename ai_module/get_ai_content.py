@@ -82,6 +82,7 @@ def create_ai_content(title, returns, params, *content):
     character_count = len(meta_description.strip())
     prompt_meta_description_history = ChatPromptTemplate.from_template(templateMetaDescriptionHistory)
     chain = prompt_meta_description_history | model # It runs prompt first then model.
+    # TODO: Make it us the meta_description_history to generate the meta description since some AI models clearly dont understand character count.
     while character_count > 160:
         meta_description_history += f"\nAI Result: {meta_description}"
         meta_description = chain.invoke({"meta_description": meta_description, "character_count": character_count, "question": title, "files": content_formatted_string})
@@ -116,13 +117,14 @@ def create_ai_content(title, returns, params, *content):
 {formula}
 """
         
-        # TODO: Use create_example_formula here?
+        # TODO: Add example numbers formula before/after the actual example text.
         #formula_example = extract_text_from_tags(formula)
         #print("FORMULA EXAMPLE before fix", formula_example)
         formula_example = create_example_formula(formula_example, params, returns)
 
         article_content += new_formula_html
         example = write_example(chain_example, chain_check_example, formula, formula_example)
+
         article_content += example
 
     else:
@@ -163,7 +165,8 @@ def create_ai_content(title, returns, params, *content):
 
     meaning_content = chain_meaning.invoke({"title": title})
 
-    article_content += "\n" + meaning_content
+    # TODO: Have "meaning" being a constant and not with AI.
+    article_content += "\n" + '<h2 id="meaning">Meaning</h2>' + "\n"  + meaning_content
 
 
     # Had to make it a dict ("meta_description": meta_description vs just meta_description) because it was giving me this error:
@@ -255,8 +258,8 @@ def create_example_formula(formula, params, returns):
     splitted_formula = formula.split()
     print("Splitted Formula:", splitted_formula)
     
-    last_char = None
-    solution_variable = ""
+    #last_char = None
+    #solution_variable = ""
     all_elements = []
     all_numbers = []
     all_numbers_with_elements = []
@@ -277,22 +280,36 @@ def create_example_formula(formula, params, returns):
         # What if the character a = x + y is all returns?
         # Make ir run twice with params and returns so I dont have to write the code twice.
 
+        # TODO: Need to not count the first one. and not add in the result?
+        count = 0
         if len(char) > 1:
             
-            for item in items:
-                for i in item:
-                    if i['name'] == char:
-                        element = i['element']
-                        all_elements.append(element)
-                        print("Elements:", element)
-                        random_number = made_up_numbers(element, all_numbers)
-                        all_numbers.append(random_number)
-                        if element == "currency":
-                            all_numbers_with_elements.append("$" + str(random_number))
-                        elif element == "percent":
-                            all_numbers_with_elements.append(str(random_number) + "%")
-                        else:
-                            all_numbers_with_elements.append(str(random_number))
+            if char.isnumeric(): # Check if it's a number.
+                print("Number:", char)
+                all_elements.append("number")
+                all_numbers.append(int(char))
+                all_numbers_with_elements.append(str(char))
+            else: # Not a number.
+                for item in items: # items = returns + params
+                    for i in item:
+                        if i['name'] == char:
+                            element = i['element']
+                            all_elements.append(element)
+                            print("Elements:", element)
+                            random_number = made_up_numbers(element, all_numbers)
+                            all_numbers.append(random_number)
+                            if element == "currency":
+                                all_numbers_with_elements.append("$" + str(random_number))
+                            elif element == "percent":
+                                all_numbers_with_elements.append(str(random_number) + "%")
+                            elif element == "share":
+                                all_numbers_with_elements.append(str(random_number) + " shares")
+                                #all_numbers_with_elements.append(str(random_number))
+                            else:
+                                all_numbers_with_elements.append(str(random_number))
+                            
+
+            # TODO: Add a checker if it's not in returns or params and still is a number.
             #last_char = char
         else:
             print("Character (NOT FOUND):", char)
@@ -300,6 +317,9 @@ def create_example_formula(formula, params, returns):
     
     # ERROR: If both rhs is also in return they dont show in either.
     print("All Elements:", all_elements)
+    solution_name = all_numbers[0]
+    all_numbers.pop(0) # Remove the first one, aka "the solution".
+    print("All Numbers:", all_numbers)
     print("All Numbers with elements:", all_numbers_with_elements)
     
     formula_solution = formula.split("=")[0]
@@ -320,15 +340,14 @@ def create_example_formula(formula, params, returns):
     count = 0
     for char in rhs_chars:
         if len(char) > 1:
-            #print("RHS Chars:", char)
-            rhs_chars[rhs_chars.index(char)] = str(all_numbers[count]) # ERROR: IndexError: list index out of range
+            rhs_chars[rhs_chars.index(char)] = str(all_numbers[count]) # problem?
             rhs_words.append(char)
             count += 1
 
     rhs_formula = " ".join(rhs_chars)
 
-    print("RHS Words:", rhs_words)
-    print("RHS Chars:", rhs_chars)
+    print("RHS Words:", rhs_words) # Works.
+    print("RHS Chars:", rhs_chars) # Do not work.
     print("RHS Formula:", rhs_formula)
 
     solution = eval(rhs_formula)
@@ -337,12 +356,10 @@ def create_example_formula(formula, params, returns):
     print("Solution (with rounding):", solution, type(solution))
 
     # Changed place on solution and rhs_formula. Might not work correctly..
-    #completed_formula = str(solution) + " = " + rhs_formula
-    completed_formula =  rhs_formula + " = " + str(solution)
+    #completed_formula = str(solution) + " = " + rhs_formula # Or the other way around?
+    completed_formula = rhs_formula + " = " + str(solution)
     print("All Elements:", all_elements)
     print("Completed Formula:", completed_formula)
-
-
 
 
     fixed_element_list = all_elements[1:] + all_elements[:1]
@@ -350,13 +367,20 @@ def create_example_formula(formula, params, returns):
 
     parts = completed_formula.split()
     count = 0
+    # all_elements or fixed_element_list
     for i, part in enumerate(parts):
         if len(part) > 1:
             print("count:", count)
-            if all_elements[count] == "currency": # TODO: Error here. IndexError: list index out of range. If I have a constant (like 100 or whatever) it won't have a element type.
+            if fixed_element_list[count] == "currency": # TODO: Error here. IndexError: list index out of range. If I have a constant (like 100 or whatever) it won't have a element type.
                 parts[i] = "$" + str(part)
-            #elif all_elements[count] == "percent":
-            #    parts[i] = str(part) + "%"
+            elif fixed_element_list[count] == "number":
+                parts[i] = str(part)
+            elif fixed_element_list[count] == "percent":
+                parts[i] = str(part) + "%"
+            elif fixed_element_list[count] == "share":
+                parts[i] = str(part) + " shares"
+            else:
+                parts[i] = str(part)
             count += 1
 
     fancy_formula = " ".join(parts)
@@ -411,6 +435,13 @@ def made_up_numbers(element, last_numbers):
             if random_number not in last_numbers:
                 number = random_number
                 break
+    elif element == "share":
+        # Generate random number between 1-300k in steps of 1k
+        while True:
+            random_number = random.randrange(1000, 300000, 1000)
+            if random_number not in last_numbers:
+                number = random_number
+                break
     else:
         while True:
             random_number = random.randrange(100, 10000, 100)
@@ -420,7 +451,7 @@ def made_up_numbers(element, last_numbers):
     return number
 
 
-# TODO: ERROR!
+# TODO: Maybe add so only one chain works?
 # Loops forever.
 def write_example(chain, chainCheckExample, formula, formula_example):
     html = ""
@@ -432,7 +463,7 @@ def write_example(chain, chainCheckExample, formula, formula_example):
         print("EXAMPLE CONTENT:", example_content)
         
         # Check the example calculation
-        check_example_calculation = chainCheckExample.invoke({"example": example_content})
+        #check_example_calculation = chainCheckExample.invoke({"example": example_content})
         
         # Normalize the check result for consistency
         #normalized_check = check_example_calculation.strip().lower().replace('"', '')
@@ -442,8 +473,9 @@ def write_example(chain, chainCheckExample, formula, formula_example):
         
         # Break the loop if the result is "true"
         if normalized_check == "true":
-            html = f"\n<p class='example'>{example_content}</p>\n"
-            print("check_example_calculation TRUE: ", check_example_calculation)
+            html = f"\n<p class='example'><span class='example_number'>{formula_example}.</span>{example_content}</p>\n"
+            print("example_content TRUE: ", example_content)
+            #print("check_example_calculation TRUE: ", check_example_calculation)
             break
         
         print("check_example_calculation not TRUE, retrying...")
