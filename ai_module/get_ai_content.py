@@ -4,6 +4,8 @@ import os
 import sys
 import random
 import re
+import colorama
+from colorama import Back, Fore, Style
 
 # Local Imports:
 # ERROR: if I run from main it's "ai_templates" otherwise if I run the main.py it's ".ai_templates".
@@ -20,6 +22,8 @@ math_model_name = "phi3:medium" # 14B
 code_gemma = "codegemma:7b"
 code_model_name_lightweight = summarization_model_name #"codegemma:7b"
 current_model_name = summarization_model_name
+
+colorama.init(autoreset=True)
 
 
 def remove_surrounding_quotes(input_string):
@@ -238,10 +242,12 @@ def get_names_and_elements_by_words(params, word_list):
 """
 
 # Create a example formula.
+# TODO: Fix so it can never get the error: ZeroDivisionError: float division by zero.
+# Fix it by making it not divide by zero.
 def create_example_formula(formula, params, returns):
     # If the formula is a list, get the first element.
     print("-------------------------------------")
-    print("FORMULA:", formula)
+    print("FORMULA:", Fore.RED + formula)
     print("-------------------------------------")
     print("Returns:", returns)
     print("-------------------------------------")
@@ -284,18 +290,22 @@ def create_example_formula(formula, params, returns):
         count = 0
         if len(char) > 1:
             
-            if char.isnumeric(): # Check if it's a number.
-                print("Number:", char)
+            # TODO: Doesn't count 1.2 as a number.
+            #if char.isnumeric(): # Check if it's a number.
+            if isfloat(char): # Check if it's a number.
+                #print("Number:", char)
                 all_elements.append("number")
-                all_numbers.append(int(char))
+                all_numbers.append(float(char))
                 all_numbers_with_elements.append(str(char))
+                print("Number:", Fore.GREEN + char)
             else: # Not a number.
+                print("Not a number:", Fore.RED + char)
                 for item in items: # items = returns + params
                     for i in item:
                         if i['name'] == char:
                             element = i['element']
                             all_elements.append(element)
-                            print("Elements:", element)
+                            #print("Elements:", element)
                             random_number = made_up_numbers(element, all_numbers)
                             all_numbers.append(random_number)
                             if element == "currency":
@@ -340,6 +350,7 @@ def create_example_formula(formula, params, returns):
     count = 0
     for char in rhs_chars:
         if len(char) > 1:
+            print("Char:", Fore.RED + char)
             rhs_chars[rhs_chars.index(char)] = str(all_numbers[count]) # problem?
             rhs_words.append(char)
             count += 1
@@ -365,26 +376,35 @@ def create_example_formula(formula, params, returns):
     fixed_element_list = all_elements[1:] + all_elements[:1]
     print("Fixed Elements:", fixed_element_list)
 
+    # TODO: Parts wont be the same 
     parts = completed_formula.split()
     count = 0
     # all_elements or fixed_element_list
     for i, part in enumerate(parts):
+        #if isinstance(part, (int, float)) or len(part) > 1: # Tried to make if its a number or more then one character.
+        # try float(part):
+        # TODO: ERROR HERE!
         if len(part) > 1:
-            print("count:", count)
+            #print("count:", count)
             if fixed_element_list[count] == "currency": # TODO: Error here. IndexError: list index out of range. If I have a constant (like 100 or whatever) it won't have a element type.
                 parts[i] = "$" + str(part)
-            elif fixed_element_list[count] == "number":
+                print("Currency:", parts[i])
+            elif fixed_element_list[count] in ["number", "ratio"]:
                 parts[i] = str(part)
+                print("Number:", parts[i])
             elif fixed_element_list[count] == "percent":
                 parts[i] = str(part) + "%"
+                print("Percent:", parts[i])
             elif fixed_element_list[count] == "share":
                 parts[i] = str(part) + " shares"
+                print("Share:", parts[i])
             else:
                 parts[i] = str(part)
+                print("Default:", parts[i])
             count += 1
 
     fancy_formula = " ".join(parts)
-    print("Fancy Formula:", fancy_formula)
+    print("Fancy Formula:", Fore.GREEN + fancy_formula)
     
 
     # TODO: Make up numbers for the formula.
@@ -416,6 +436,14 @@ def format_number(value, fmt):
     elif fmt == 'percent':
         return f"{value}%"
     return value  # Default if no match
+
+
+def isfloat(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 
 # TODO: Add percentages, units, etc!

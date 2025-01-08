@@ -351,6 +351,7 @@ def detect_type(input_string):
         "select": ["select", "option", "choice"],
         "compound_frequency_select": ["compoundinterestfrequency", "select:compoundinterest", "compoundfrequency"],
         "year": ["years", "year"],
+        "ratio": ["ratio", "ratios"],
     }
     
     # Convert to lowercase to make the check case-insensitive

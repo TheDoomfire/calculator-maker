@@ -64,21 +64,22 @@ Answer:
 # TODO: Needs to be shorter and more direct? Needs to follow the formula & provide a better example.
 # Maybe explain what it reprisents and what it is.
 # Example:
-""" If a company retains 5% of its earnings and has a return on equity (ROE) of 19%, its sustainable growth rate is:
-
-(5 × 19%) / 100 = 0.95%
+""" If a company retains 5% of its earnings and has a return on equity (ROE) of 19%, its sustainable growth rate is 0.95%.
 
 This means the company can sustainably grow at a rate of 0.95% annually without needing external financing.
  """
+
 templateExample = """
-Using this formula "{formula}" and these numbers"{formula_example}" explain what the formula does plainly and in short. 
-Do not show the formula, only showing the numbers is allowed with text.
-Do not show the formula in any way.
-Do not only show the result and nothing else, I need to know what the formula does.
-Do not include any text such as "The formula calculates" or "This formula" or "It determines" or "It calculates", etc before or after the response.
-Do not write something like "represents the formula" or "is the formula" or "is calculated by the formula" or anything else like that, assume the reader already seen the formula.
-A short and direct explanation is preferred that assumes the reader already sees the formula.
-Do not write stuff as "the value you've provided" or "the value you're providing" or "the value you're given" or "This calculation shows the " or ""This calculation shows" or "The numbers provided " or anything else like that.
+Using this formula "{formula}" and these numbers "{formula_example}" explain what the formula does plainly and in short.
+Start off by simply using these numbers with the names in a sentence, then in another sentence explain what the result number means.
+Do not include any additional text, explanations, or comments before or after the response.
+Do not include the formula with or without numbers, do not include the formula(s) in any way.
+Do not include any additional text such as "Using these numbers, ", "For example" or "Example" or "The formula for" or anything else like that.
+The numbers and formula is correct and should be used as is without any changes, for example 0.95% is 0.95% and not 95%.
+
+Here is a example output using example names and numbers:
+If a company retains 5% of its earnings and has a return on equity (ROE) of 19%, its sustainable growth rate is 0.95%.
+This means the company can sustainably grow at a rate of 0.95% annually without needing external financing.
 
 Answer:
 """
