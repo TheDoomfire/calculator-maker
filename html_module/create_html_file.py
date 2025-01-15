@@ -2,6 +2,7 @@ from typing import Dict
 
 
 # \n
+# TODO: Maybe simply make it a big """ """ file at the end, and have each thing a own variable name.
 def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_names: Dict[str, str]):
     html_name = file_names['html']
     file_name = file_names['file']
@@ -35,6 +36,8 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
             new_html_file += f"""{{% import 'components/inputs/input-percent.njk' as percentInput %}}\n"""
         elif imp == "table":
             new_html_file += f"""{{% import 'components/tables/custom-table.njk' as customTable %}}\n"""
+        elif imp == "year":
+            new_html_file += f"""{{% import 'components/tables/input-year.njk' as yearInput %}}\n"""
         elif imp == "compound_frequency_select":
             new_html_file += f"""{{% import "components/select/compounding-frequency.njk" as customSelectCompoundFrequency %}}\n"""
         #elif imp == "custom":
@@ -60,6 +63,8 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
                 new_html_file += f"""\t\t{{{{ currencyInput.inputCurrency("{key}", "{pretty_name}", "{description}") }}}}\n"""
             elif element == 'percent':
                 new_html_file += f"""\t\t{{{{ percentInput.inputPercent("{key}", "{pretty_name}", "{description}") }}}}\n"""
+            elif element == 'year':
+                new_html_file += f"""\t\t{{{{ yearInput.inputYear("{key}", "{pretty_name}", "{description}") }}}}\n"""
             elif element == 'compound_frequency_select':
                 new_html_file += f"""\t\t<label title="{description}" for={key}>{pretty_name}:&nbsp;{{{{ customSelectCompoundFrequency.compoundingFrequency("1", "{key}") }}}}</label>\n""" # TODO: TRY THIS!
             else: # TODO: Might come to issue later.

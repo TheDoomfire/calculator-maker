@@ -106,20 +106,31 @@ def readable_formulas(js_content, return_types):
     formulas = []
     for return_type in return_types:
         name = return_type['name']
+        
+        # Looking for const.
+        try:
+            # TODO: If its a string without = then maybe just return it or something?
+            getVariables = find_const_declaration(js_content, name)
+            splitVariable = getVariables.split('=', 1)
+            const = splitVariable[0].strip()
+            jsFormula = splitVariable[1].strip()
+            if const.startswith("const ") and jsFormula != "[]":
+                #print("jsFormula:", jsFormula)
 
-        getVariables = find_const_declaration(js_content, name)
-        splitVariable = getVariables.split('=', 1)
-        const = splitVariable[0].strip()
-        jsFormula = splitVariable[1].strip()
-        if const.startswith("const ") and jsFormula != "[]":
-            #print("jsFormula:", jsFormula)
+                # TODO: Use: js_to_mathml to html, and create new function for plainText
+                formula = js_to_readable(jsFormula)
+                plainText = formula['plain_text']
+                html = formula['html']
+                new_object = {'name': name, 'plain_text': plainText, 'html': html}
+                formulas.append(new_object)
+        except: # Donno how this works.
+            # TODO:
+            # Look for let instead of const.
+            print("Trying to look for let?")
+            getVariables = find_let_declaration(js_content, name)
+            formula = ""
+            new_object = {'name': name, 'plain_text': "", 'html': ""}
 
-            # TODO: Use: js_to_mathml to html, and create new function for plainText
-            formula = js_to_readable(jsFormula)
-            plainText = formula['plain_text']
-            html = formula['html']
-            new_object = {'name': name, 'plain_text': plainText, 'html': html}
-            formulas.append(new_object)
 
     return formulas
 
@@ -177,27 +188,31 @@ def prettify_formula(formula: str) -> str:
 def readable_formula(js_content, name):
     formulas = []
 
-    getVariables = find_const_declaration(js_content, name)
-    splitVariable = getVariables.split('=', 1)
-    #const = splitVariable[0].strip() # .replace("const ", "")
-    jsFormula = splitVariable[1].strip()
+    try:
+        getVariables = find_const_declaration(js_content, name)
+        # TODO: ERROR: AttributeError: 'NoneType' object has no attribute 'split'
+        splitVariable = getVariables.split('=', 1)
+        #const = splitVariable[0].strip() # .replace("const ", "")
+        jsFormula = splitVariable[1].strip()
 
-    words = re.findall(r'\b\w+\b', jsFormula)
-    # TODO: Add array to words for each element.
+        words = re.findall(r'\b\w+\b', jsFormula)
+        # TODO: Add array to words for each element.
 
-    if "[]" not in jsFormula:
-        both_formula = js_to_mathml(getVariables)
-        formula_html = both_formula['html']
-        formula_ugly = both_formula['html_ugly']
+        if "[]" not in jsFormula:
+            both_formula = js_to_mathml(getVariables)
+            formula_html = both_formula['html']
+            formula_ugly = both_formula['html_ugly']
 
-        new_object = {
-            'name': name, 
-            'html': formula_html.replace("Const ", ""), 
-            "formula_variables": words,
-            'html_ugly': formula_ugly.replace("const ", "")
-            }
-        formulas = new_object
-        return formulas
+            new_object = {
+                'name': name, 
+                'html': formula_html.replace("Const ", ""), 
+                "formula_variables": words,
+                'html_ugly': formula_ugly.replace("const ", "")
+                }
+            formulas = new_object
+            return formulas
+    except:
+        return {'name': name, 'html': "", "formula_variables": [], 'html_ugly': ""}
 
     #print("JSFORMULA", jsFormula)
 
@@ -250,6 +265,13 @@ def find_const_declaration(js_code: str, variable_name: str) -> str | None:
     """
     # Regex to match the entire constant declaration line
     pattern = rf"\bconst\s+{re.escape(variable_name)}\s*=\s*.*?;"
+    match = re.search(pattern, js_code)
+    return match.group(0).rstrip(";") if match else None
+
+
+def find_let_declaration(js_code: str, variable_name: str) -> str | None:
+    # Regex to match the entire constant declaration line
+    pattern = rf"\blet\s+{re.escape(variable_name)}\s*=\s*.*?;"
     match = re.search(pattern, js_code)
     return match.group(0).rstrip(";") if match else None
 

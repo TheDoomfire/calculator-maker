@@ -349,7 +349,7 @@ def detect_type(input_string):
         "unit": ["volume", "quantity", "amount", "count", "unit", "units"],
         "table": ["table", "data", "information"],
         "select": ["select", "option", "choice"],
-        "compound_frequency_select": ["compoundinterestfrequency", "select:compoundinterest", "compoundfrequency"],
+        "compound_frequency_select": ["compoundinterestfrequency", "select:compoundinterest", "compoundfrequency", "compoundingfrequency"],
         "year": ["years", "year"],
         "ratio": ["ratio", "ratios"],
     }

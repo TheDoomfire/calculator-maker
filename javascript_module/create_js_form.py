@@ -131,24 +131,56 @@ function {formName}() {{
     new_javascript_file +="""\n\n\ttoggle_class_if_contains_this_text();"""
 
     # TODO: Try to make chart more dynamic. Like if there is only one return value then take the inputs instead, unless they are years or select etc.
-    # Creates a chart.
-    chartLabels = []
-    chartDataset = []
+    # If only one return value, then take the inputs instead, unless they are years or select etc.
+    # 
+    # --------------------------- Chart ---------------------------
     chartID = "chart-" + htmlName
-    for ret in returns:
-        element = ret['element']
-        name = ret['name']
-        if element == 'currency':
-            chartLabels.append(ret['pretty_name'])
-            chartDataset.append("results." + name)
+
+    chart_data = generate_chart_data(returns, True)
+    chartLabels = chart_data['chartLabels']
+    chartDataset = chart_data['chartDataset']
+    count = chart_data['count']
+    if count <= 1:
+        chart_data = generate_chart_data(params)
+        chartLabels = chart_data['chartLabels']
+        chartDataset = chart_data['chartDataset']
+        count = chart_data['count']
+
 
     chartDataString = ", ".join(chartDataset)
 
-    new_javascript_file += f"""\n\tgenerate_main_chart("{pretty_name} Chart", "bar", {chartLabels}, [{chartDataString}], "{chartID}");\n"""
+    if count <= 1:
+        new_javascript_file += f"""\n\t//generate_main_chart("{pretty_name} Chart", "bar", {chartLabels}, [{chartDataString}], "{chartID}");\n"""
+    else:
+        new_javascript_file += f"""\n\tgenerate_main_chart("{pretty_name} Chart", "bar", {chartLabels}, [{chartDataString}], "{chartID}");\n"""
 
 
     new_javascript_file += f"""\n}};"""
     return new_javascript_file
+
+
+def generate_chart_data(params, results=False):
+    count = 0
+    chartLabels = []
+    chartDataset = []
+    
+    if results:
+        results = "results."
+    else:
+        results = ""
+
+    for param in params:
+        element = param['element']
+        name = param['name']
+        if element == 'currency':
+            chartLabels.append(param['pretty_name'])
+            chartDataset.append(results + name)
+            count += 1
+    return {
+        "chartLabels": chartLabels,
+        "chartDataset": chartDataset,
+        "count": count
+    }
 
 
 def create_file(file_content, path, name):

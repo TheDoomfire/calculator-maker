@@ -138,17 +138,10 @@ def create_ai_content(title, returns, params, *content):
         # TODO: Then make a python function that calculates the answer to that formula.
 
         for ret in returns:
-            print("-------------------------------------")
-            print("RETURN:", ret)
-            print("-------------------------------------")
             formula = ret['html_formula']
             formula_example = ret['html_ugly']
-            print("-------------------------------------")
-            print("FORMULA in ret:", formula)
-            print("-------------------------------------")
-            formula_variables = ret['formula_variables']
-            mylist = get_names_and_elements_by_words(params, formula_variables)
-            print("mylist", mylist)
+            #formula_variables = ret['formula_variables']
+            #mylist = get_names_and_elements_by_words(params, formula_variables)
             if formula != "":
                 pretty_name = ret['pretty_name']
                 new_formula_html = f"""<h2>{pretty_name} Formula</h2>
@@ -248,10 +241,6 @@ def create_example_formula(formula, params, returns):
     # If the formula is a list, get the first element.
     print("-------------------------------------")
     print("FORMULA:", Fore.RED + formula)
-    print("-------------------------------------")
-    print("Returns:", returns)
-    print("-------------------------------------")
-    print("Params:", params)
     print("-------------------------------------")
     if isinstance(formula, list) or isinstance(formula, tuple):
         formula = formula[0] # ERROR!
@@ -470,6 +459,14 @@ def made_up_numbers(element, last_numbers):
             if random_number not in last_numbers:
                 number = random_number
                 break
+    elif element == "compound_frequency_select":
+        frequencies = [1, 4, 12] # Common frequencies
+        while True:
+            random_number = random.choice(frequencies)
+            if random_number not in last_numbers:
+                number = random_number
+                break
+
     else:
         while True:
             random_number = random.randrange(100, 10000, 100)
