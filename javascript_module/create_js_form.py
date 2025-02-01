@@ -88,6 +88,8 @@ import { generate_main_chart } from '/scripts/charts/mainChart.js'
             new_javascript_file += "import { prettifyMoney } from '/scripts/formats/Money.js';\n"   
         elif type == "percent":
             new_javascript_file += "import { prettifyPercent } from '/scripts/formats/Percent.js';\n"
+        elif type == "years":
+            new_javascript_file += "import PrettifyYears from '/scripts/formats/years.js';\n"
         elif type == "table":
             new_javascript_file += "import { arrayToTable } from '/scripts/tables/ArrayToTable.js';\n"
         else: # Didn't work once.
@@ -121,6 +123,8 @@ function {formName}() {{
             new_javascript_file += f"""\tdocument.getElementById("result-{name}").innerHTML = prettifyMoney(results.{name});\n"""
         elif element == "percent":
             new_javascript_file += f"""\tdocument.getElementById("result-{name}").innerHTML = prettifyPercent(results.{name}/100);\n"""
+        elif element == "years":
+            new_javascript_file += f"""\tdocument.getElementById("result-{name}").innerHTML = PrettifyYears(results.{name});\n"""
         elif element == "table":
             tableID = "table-" + htmlName
             new_javascript_file += f"""\tarrayToTable(results.{name}, "{tableID}");\n"""

@@ -1,8 +1,0 @@
-grossToNet.js
-netToGross.js
-goodsAndServicesTax.js
-valueAddedTax.js
-afterRepairValue.js
-capitalizationRates.js
-earnestMoney.js
-interestOnlyMortgage.js

@@ -50,10 +50,12 @@ def run_main(javascript_file_name, run, allow_ai):
 
     # Get the types of the parameters and return value based on the comments on the function.
     all_returns = get_types_javascript.extract_function_details(js_content)
+    print("all_returns", all_returns)
     param_types = all_returns['parameters']
     return_types = all_returns['returns']
 
     new_javascript_file_names = format_for_javascript.format_js_function_name(javascript_file_name)
+    print("new_javascript_file_names", new_javascript_file_names)
     fileName = new_javascript_file_names['file'] # New file name for example "nameForm.js"
     htmlName = new_javascript_file_names['html'] # New file name for example "name-form"
     #pretty_name = new_javascript_file_names['pretty_name']
@@ -63,9 +65,11 @@ def run_main(javascript_file_name, run, allow_ai):
 
 
     new_javascript_content = create_js_form.generate_js_file(param_types, return_types, new_javascript_file_names)
+    print("new_javascript_content", new_javascript_content)
     new_html_content = create_html_file.create_html_content(param_types, return_types, new_javascript_file_names)
+    print("new_html_content", new_html_content)
     new_calculator_article_content = create_article_file.create_article_content(param_types, return_types, new_javascript_file_names, [js_content, new_javascript_content,  new_html_content], allow_ai)
-
+    print("new_calculator_article_content", new_calculator_article_content) # Wrong here.
 
     # Creates files and returns the paths. Else returns paths of the files that already exist.
     new_form_path = create_js_form.create_file(new_javascript_content, forms_path, fileName)
@@ -92,8 +96,6 @@ def run_main(javascript_file_name, run, allow_ai):
 
 
 def main():
-    # TODO: Make better examples?
-
     # TODO: Make in the command prompt you can choose to delete the chosen one?
     run = True  # If I should run the program (True) OR delete the files (False).
     allow_ai = True  # If I should allow AI to write the article.
@@ -184,7 +186,8 @@ def main():
         except Exception as e:
             print(f"An error occurred: {e}")
     else:
-        javascript_file_name = command + ".js"
+        #javascript_file_name = command + ".js"
+        javascript_file_name = command if command.endswith('.js') else command + '.js'
         print(Fore.LIGHTYELLOW_EX + "Running: " + javascript_file_name)
         run_main(javascript_file_name, run, allow_ai)
 

@@ -15,7 +15,7 @@ from config import variables
 
 
 # All models are very slow on my PC.
-summarization_model_name = "llama3.2:3b" # llama3.1:8b AND ollama run llama3.2:3b AND "mistral:7b"
+summarization_model_name = "llama3.2:3b" # llama3.1:8b AND ollama run llama3.2:3b AND "mistral:7b" "deepseek-r1:7b" "deepseek-r1:1.5b"
 image_generating_model_name = "llama3.2-vision"
 code_model_name = "qwen2.5-coder:14b"
 math_model_name = "phi3:medium" # 14B
@@ -53,6 +53,7 @@ def remove_surrounding_quotes(input_string):
 # Make several small AI requests. Easier to get it right and not skipping anything.
 # Mix up the AI with programming. Since programming is always done the same way.
 
+# TODO: Skip if there's a table. No need for formula or example!
 
 
 # Templates:
@@ -62,6 +63,7 @@ def remove_surrounding_quotes(input_string):
 # Grab all the information needed for an article.
 def create_ai_content(title, returns, params, *content):
     meta_description_history = ""
+    print("Running: create_ai_content")
 
     # If the content is already an array, use it as-is.
     # Check if the first argument in *content is a list
@@ -84,6 +86,7 @@ def create_ai_content(title, returns, params, *content):
     meta_description = chain.invoke({"question": title, "files": content_formatted_string})
 
     character_count = len(meta_description.strip())
+    print("character_count 1: ", character_count)
     prompt_meta_description_history = ChatPromptTemplate.from_template(templateMetaDescriptionHistory)
     chain = prompt_meta_description_history | model # It runs prompt first then model.
     # TODO: Make it us the meta_description_history to generate the meta description since some AI models clearly dont understand character count.
@@ -91,7 +94,7 @@ def create_ai_content(title, returns, params, *content):
         meta_description_history += f"\nAI Result: {meta_description}"
         meta_description = chain.invoke({"meta_description": meta_description, "character_count": character_count, "question": title, "files": content_formatted_string})
         character_count = len(meta_description)
-        print("character_count", character_count)
+        print("character_count 2: ", character_count)
 
     meta_description = remove_surrounding_quotes(meta_description)
 
@@ -108,6 +111,7 @@ def create_ai_content(title, returns, params, *content):
     prompt_check_example = ChatPromptTemplate.from_template(checkExampleCalculation) 
     chain_check_example = prompt_check_example | model_code_lightweight
 
+    print("RETURNS:", returns)
 
     # ----------- Formulas -----------
     
@@ -277,7 +281,7 @@ def create_example_formula(formula, params, returns):
 
         # TODO: Need to not count the first one. and not add in the result?
         count = 0
-        if len(char) > 1:
+        if len(char) > 1 or isfloat(char):
             
             # TODO: Doesn't count 1.2 as a number.
             #if char.isnumeric(): # Check if it's a number.
@@ -338,7 +342,7 @@ def create_example_formula(formula, params, returns):
     rhs_words = []
     count = 0
     for char in rhs_chars:
-        if len(char) > 1:
+        if len(char) > 1 or isfloat(char):
             print("Char:", Fore.RED + char)
             rhs_chars[rhs_chars.index(char)] = str(all_numbers[count]) # problem?
             rhs_words.append(char)
@@ -350,7 +354,7 @@ def create_example_formula(formula, params, returns):
     print("RHS Chars:", rhs_chars) # Do not work.
     print("RHS Formula:", rhs_formula)
 
-    solution = eval(rhs_formula)
+    solution = calculate_this(rhs_formula) # TODO: Error here! 12900 * ( 1.0 + 26 / 100.0 ) ^ 800
     print("Solution (without rounding):", solution, type(solution))
     solution = simplify_number(solution)
     print("Solution (with rounding):", solution, type(solution))
@@ -433,6 +437,24 @@ def isfloat(value):
         return True
     except ValueError:
         return False
+    
+
+def calculate_this(expression_str):
+    """
+    Evaluates a mathematical expression string after replacing ^ with **.
+    WARNING: Avoid using with untrusted input (eval can execute arbitrary code).
+    """
+    # Replace caret (^) with Python's exponent operator (**)
+    modified_str = expression_str.replace('^', '**')
+    
+    # Restrict the evaluation environment for minimal security
+    allowed_globals = {"__builtins__": None}  # Block access to built-in functions/modules
+    allowed_locals = {}  # No local variables
+    
+    try:
+        return eval(modified_str, allowed_globals, allowed_locals)
+    except:
+        raise ValueError(f"Error evaluating expression: {modified_str}")
 
 
 # TODO: Add percentages, units, etc!
@@ -523,8 +545,9 @@ def test_variables():
 def main():
     print("Running AI main.")
     #print(templateContent)
-    print(create_example_formula(variables.test_formula, variables.test_params, variables.test_returns))
-    print(made_up_numbers("currency", [1000, 2000, 3000]))
+    #print(create_example_formula(variables.test_formula, variables.test_params, variables.test_returns))
+    #print(made_up_numbers("currency", [1000, 2000, 3000]))
+    print("EVAL: ", eval("11000 * ( 1.0 + 20 / 100.0 ) ** 9700"))
 
 if __name__ == '__main__':
     main()

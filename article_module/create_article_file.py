@@ -14,7 +14,7 @@ def create_article_content(params: Dict[str, str], returns: Dict[str, str], file
     #html_name = file_names['html']
     #file_name = file_names['file']
 
-    # TODO: Add AI
+    print("Running: create_article_content")
 
 
     pretty_name = file_names['pretty_name']

@@ -25,19 +25,24 @@ def create_html_content(params: Dict[str, str], returns: Dict[str, str], file_na
                     all_imports.append("table")
                 elif element == "compound_frequency_select" and not "compound_frequency_select" in all_imports:
                     all_imports.append("compound_frequency_select")
-                #elif element == "year" and not "custom" in all_imports:
-                #    all_imports.append("custom")
+                elif element == "year" and not "year" in all_imports:
+                    all_imports.append("year")
+                elif element == "area" and not "area" in all_imports:
+                    all_imports.append("area")
     
     # Add imports.
+    print("all_imports", all_imports) # Missing year ? Why? Only 3 ['currency', 'percent', 'table'] should be year too.
     for imp in all_imports:
         if imp == "currency":
             new_html_file += f"""{{% import 'components/inputs/input-currency.njk' as currencyInput %}}\n"""    
         elif imp == "percent":
             new_html_file += f"""{{% import 'components/inputs/input-percent.njk' as percentInput %}}\n"""
+        elif imp == "year":
+            new_html_file += f"""{{% import 'components/inputs/input-year.njk' as yearInput %}}\n"""
+        elif imp == "area":
+            new_html_file += f"""{{% import 'components/inputs/input-area.njk' as areaInput %}}\n"""
         elif imp == "table":
             new_html_file += f"""{{% import 'components/tables/custom-table.njk' as customTable %}}\n"""
-        elif imp == "year":
-            new_html_file += f"""{{% import 'components/tables/input-year.njk' as yearInput %}}\n"""
         elif imp == "compound_frequency_select":
             new_html_file += f"""{{% import "components/select/compounding-frequency.njk" as customSelectCompoundFrequency %}}\n"""
         #elif imp == "custom":
